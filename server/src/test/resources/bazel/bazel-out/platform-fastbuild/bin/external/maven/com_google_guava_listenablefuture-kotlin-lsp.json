@@ -1,0 +1,9 @@
+{
+  "bazelTarget": "@maven//:com_google_guava_listenablefuture",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/processed_listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+    "sourceJar": ""
+  }],
+  "sourceFiles": [{
+  }]
+}

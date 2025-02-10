@@ -95,6 +95,7 @@ class KotlinLanguageServer(
         serverCapabilities.documentHighlightProvider = Either.forLeft(true)
 
         val storagePath = getStoragePath(params)
+        LOG.info { "Storage path: $storagePath" }
         databaseService.setup(storagePath)
 
         val clientCapabilities = params.capabilities

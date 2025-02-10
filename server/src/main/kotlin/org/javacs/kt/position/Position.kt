@@ -89,6 +89,7 @@ fun range(content: String, range: TextRange) =
 
 fun location(declaration: DeclarationDescriptor): Location? {
     val psiLocation = declaration.findPsi()?.let(::location)
+    LOG.info { "Found psi location for declaration ${declaration.name} - ${psiLocation}" }
     if (psiLocation != null) return psiLocation
 
     if (declaration is DeclarationDescriptorWithSource) {

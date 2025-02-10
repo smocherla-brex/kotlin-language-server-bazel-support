@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     kotlin("jvm")
     id("maven-publish")
@@ -53,6 +55,7 @@ dependencies {
     implementation(libs.com.github.fwcd.ktfmt)
     implementation(libs.com.beust.jcommander)
     implementation(libs.org.xerial.sqlite.jdbc)
+    implementation(libs.com.google.protobuf.java)
 
     testImplementation(libs.hamcrest.all)
     testImplementation(libs.junit.junit)

@@ -1,25 +1,27 @@
 package org.javacs.kt
 
 import com.intellij.openapi.util.text.StringUtil.convertLineSeparators
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.Language
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.filePath
-import org.javacs.kt.util.partitionAroundLast
 import org.javacs.kt.util.describeURIs
 import org.javacs.kt.util.describeURI
+import org.javacs.kt.proto.LspInfo
 import java.io.BufferedReader
 import java.io.StringReader
 import java.io.StringWriter
 import java.io.IOException
 import java.io.FileNotFoundException
 import java.net.URI
-import java.nio.file.FileSystems
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.stream.Collectors
+import kotlin.io.path.absolute
+import kotlin.io.path.isRegularFile
 
 private class SourceVersion(val content: String, val version: Int, val language: Language?, val isTemporary: Boolean)
 
@@ -180,12 +182,22 @@ class SourceFiles(
     }
 
     private fun findSourceFiles(root: Path): Set<URI> {
-        val sourceMatcher = FileSystems.getDefault().getPathMatcher("glob:*.{kt,kts}")
-        return SourceExclusions(listOf(root), scriptsConfig)
-            .walkIncluded()
-            .filter { sourceMatcher.matches(it.fileName) }
-            .map(Path::toUri)
-            .toSet()
+        val bazelOut = root.resolve("bazel-out")
+        if(!Files.exists(bazelOut)) {
+            return emptySet()
+        }
+        // TODO: we walk bazel-out here again to collect the files emitted by the aspect
+        // this is redundant as we also do it in classpath resolver, so it might be worth unifying the logic
+        // to reduce filesystem calls
+        return Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
+            paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("kotlin-lsp.json") }
+                .map { path: Path -> LspInfo.fromJson(path) }
+                .map { it.sourceFilesList }
+                .collect(Collectors.toList())
+                .flatten()
+                .map { Paths.get(it.path).toUri() }
+                .toSet()
+        }
     }
 
     fun updateExclusions() {
@@ -239,6 +251,9 @@ private fun patch(sourceText: String, change: TextDocumentContentChangeEvent): S
 }
 
 private fun logAdded(sources: Collection<URI>, rootPath: Path?) {
+    sources.map {
+        LOG.info("Adding $it for $rootPath")
+    }
     LOG.info("Adding {} under {} to source path", describeURIs(sources), rootPath)
 }
 

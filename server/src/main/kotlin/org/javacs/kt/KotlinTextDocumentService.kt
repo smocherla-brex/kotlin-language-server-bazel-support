@@ -111,7 +111,7 @@ class KotlinTextDocumentService(
             LOG.info("Hovering at {}", describePosition(position))
 
             val (file, cursor) = recover(position, Recompile.NEVER) ?: return@compute null
-            hoverAt(file, cursor) ?: noResult("No hover found at ${describePosition(position)}", null)
+            hoverAt(file, cp.compiler, cp, cursor) ?: noResult("No hover found at ${describePosition(position)}", null)
         }
     }
 
@@ -124,12 +124,13 @@ class KotlinTextDocumentService(
         TODO("not implemented")
     }
 
+
     override fun definition(position: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> = async.compute {
         reportTime {
             LOG.info("Go-to-definition at {}", describePosition(position))
 
             val (file, cursor) = recover(position, Recompile.NEVER) ?: return@compute Either.forLeft(emptyList())
-            goToDefinition(file, cursor, uriContentProvider.classContentProvider, tempDirectory, config.externalSources, cp)
+            goToDefinition(file, cursor, tempDirectory, cp)
                 ?.let(::listOf)
                 ?.let { Either.forLeft<List<Location>, List<LocationLink>>(it) }
                 ?: noResult("Couldn't find definition at ${describePosition(position)}", Either.forLeft(emptyList()))
@@ -183,8 +184,18 @@ class KotlinTextDocumentService(
 
     override fun didOpen(params: DidOpenTextDocumentParams) {
         val uri = parseURI(params.textDocument.uri)
+        LOG.info { "Linting $uri" }
         sf.open(uri, params.textDocument.text, params.textDocument.version)
         lintNow(uri)
+
+        // TODO: comment this in code, we need to use DI and abstract this out
+        // for tests to pass
+        // notify client that linting or compiling was done
+//        val documentNotification = mapOf("uri" to uri, "kind" to "end")
+//        val params = ProgressParams()
+//        params.token = Either.forLeft("bazelKLS/kotlinAnalysis")
+//        params.value = Either.forRight(documentNotification)
+//        client.notifyProgress(params)
     }
 
     override fun didSave(params: DidSaveTextDocumentParams) {
@@ -277,6 +288,7 @@ class KotlinTextDocumentService(
 
     fun lintAll() {
         debounceLint.submitImmediately {
+            LOG.info("Linting all files...")
             sp.compileAllFiles()
             sp.saveAllFiles()
             sp.refreshDependencyIndexes()

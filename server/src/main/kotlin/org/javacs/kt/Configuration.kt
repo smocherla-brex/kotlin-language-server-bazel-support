@@ -37,7 +37,7 @@ public data class DiagnosticsConfiguration(
 
 public data class JVMConfiguration(
     /** Which JVM target the Kotlin compiler uses. See Compiler.jvmTargetFrom for possible values. */
-    var target: String = "default"
+    var target: String = "11"
 )
 
 public data class CompilerConfiguration(
@@ -57,7 +57,7 @@ public data class ExternalSourcesConfiguration(
 )
 
 data class InlayHintsConfiguration(
-    var typeHints: Boolean = false,
+    var typeHints: Boolean = true,
     var parameterHints: Boolean = false,
     var chainedHints: Boolean = false
 )

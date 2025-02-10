@@ -1,0 +1,19 @@
+{
+  "bazelTarget": "@maven//:org_jetbrains_annotations",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/annotations/23.0.0/processed_annotations-23.0.0.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/annotations/23.0.0/annotations-23.0.0-sources.jar"
+  }],
+  "sourceFiles": [{
+  }],
+  "packageSourceMappings": [{
+    "packageName": "org.jetbrains.annotations",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/annotations/23.0.0/annotations-23.0.0-sources.jar"
+  }, {
+    "packageName": "org.intellij.lang.annotations",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/annotations/23.0.0/annotations-23.0.0-sources.jar"
+  }, {
+    "packageName": "META-INF.versions.9",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/annotations/23.0.0/annotations-23.0.0-sources.jar"
+  }]
+}

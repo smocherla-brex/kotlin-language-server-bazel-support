@@ -1,0 +1,64 @@
+{
+  "bazelTarget": "@maven//:com_google_guava_guava",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/processed_guava-30.0-jre.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }],
+  "sourceFiles": [{
+  }],
+  "packageSourceMappings": [{
+    "packageName": "com.google.common.annotations",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.base",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.base.internal",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.cache",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.collect",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.escape",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.eventbus",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.graph",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.hash",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.html",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.io",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.math",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.net",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.primitives",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.reflect",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.util.concurrent",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.common.xml",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }, {
+    "packageName": "com.google.thirdparty.publicsuffix",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/guava/guava/30.0-jre/guava-30.0-jre-sources.jar"
+  }]
+}

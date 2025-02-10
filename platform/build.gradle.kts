@@ -27,5 +27,6 @@ dependencies {
         api(libs.org.jetbrains.kotlin.kotlin.scripting.jvm.host)
         api(libs.org.openjdk.jmh.generator.annprocess)
         api(libs.org.xerial.sqlite.jdbc)
+        api(libs.com.google.code.gson)
     }
 }

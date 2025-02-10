@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 private const val MAX_PATH_LENGTH = 2047
 
@@ -26,6 +27,19 @@ private object ClassPathCacheEntry : IntIdTable() {
 
 private object BuildScriptClassPathCacheEntry : IntIdTable() {
     val jar = varchar("jar", length = MAX_PATH_LENGTH)
+}
+
+
+private object PackageSourceJarMappingEntry : IntIdTable() {
+    val packageName = varchar("packageName", length = MAX_PATH_LENGTH)
+    val sourceJarPath = varchar("sourceJar", length = MAX_PATH_LENGTH)
+}
+
+class PackageSourceMappingEntryEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<PackageSourceMappingEntryEntity>(PackageSourceJarMappingEntry)
+
+   var packageName by PackageSourceJarMappingEntry.packageName
+   var sourceJarPath by PackageSourceJarMappingEntry.sourceJarPath
 }
 
 class ClassPathMetadataCacheEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -55,12 +69,30 @@ internal class CachedClassPathResolver(
 ) : ClassPathResolver {
     override val resolverType: String get() = "Cached + ${wrapped.resolverType}"
 
+    private var cachedPackageSourceMappingEntries: Set<PackageSourceMapping>
+        get() = transaction(db) {
+            PackageSourceMappingEntryEntity.all().map {
+                PackageSourceMapping(
+                    sourcePackage = it.packageName,
+                    sourceJar = Paths.get(it.sourceJarPath)
+                )
+            }.toSet()
+        }
+        set(newEntries) = transaction(db) {
+            PackageSourceJarMappingEntry.deleteAll()
+            newEntries.map {
+                PackageSourceMappingEntryEntity.new {
+                    sourceJarPath = it.sourceJar.absolutePathString()
+                    packageName = it.sourcePackage
+                }
+            }
+        }
     private var cachedClassPathEntries: Set<ClassPathEntry>
         get() = transaction(db) {
             ClassPathCacheEntryEntity.all().map {
                 ClassPathEntry(
                     compiledJar = Paths.get(it.compiledJar),
-                    sourceJar = it.sourceJar?.let(Paths::get)
+                    sourceJar = it.sourceJar?.let(Paths::get),
                 )
             }.toSet()
         }
@@ -102,7 +134,7 @@ internal class CachedClassPathResolver(
     init {
         transaction(db) {
             SchemaUtils.createMissingTablesAndColumns(
-                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry
+                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry, PackageSourceJarMappingEntry
             )
         }
     }
@@ -120,6 +152,15 @@ internal class CachedClassPathResolver(
 
         return newClasspath
     }
+
+    override val packageSourceJarMappings: Set<PackageSourceMapping>  get()  {
+            LOG.info("Cached jar metadata is outdated or not found. Resolving again")
+
+            val newMappings = wrapped.packageSourceJarMappings
+            updatePackageSourceMappings(newMappings)
+
+            return newMappings
+        }
 
     override val buildScriptClasspath: Set<Path> get() {
         if (!dependenciesChanged()) {
@@ -155,6 +196,13 @@ internal class CachedClassPathResolver(
             ) ?: ClasspathMetadata()
         }
     }
+
+    private fun updatePackageSourceMappings(newPackageSourceMappings: Set<PackageSourceMapping>) {
+        transaction(db) {
+            cachedPackageSourceMappingEntries = newPackageSourceMappings
+        }
+    }
+
 
     private fun updateBuildScriptClasspathCache(newClasspath: Set<Path>) {
         transaction(db) {

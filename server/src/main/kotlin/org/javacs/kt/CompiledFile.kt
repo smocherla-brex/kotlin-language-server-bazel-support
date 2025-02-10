@@ -2,7 +2,6 @@ package org.javacs.kt
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
-import org.javacs.kt.compiler.CompilationKind
 import org.javacs.kt.position.changedRegion
 import org.javacs.kt.position.location
 import org.javacs.kt.position.position
@@ -21,6 +20,18 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.eclipse.lsp4j.Location
+import org.javacs.kt.compiler.*
+import org.javacs.kt.kotest.DescribeInfo
+import org.javacs.kt.kotest.ItInfo
+import org.javacs.kt.kotest.KotestClassInfo
+import org.javacs.kt.util.toRange
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -32,6 +43,7 @@ class CompiledFile(
     val sourcePath: Collection<KtFile>,
     val classPath: CompilerClassPath,
     val isScript: Boolean = false,
+    val isTestFile: Boolean = false,
     val kind: CompilationKind = CompilationKind.DEFAULT
 ) {
     /**
@@ -272,4 +284,110 @@ class CompiledFile(
 
         return "$file ${start.line}:${start.character + 1}-${end.line + 1}:${end.character + 1}"
     }
+
+    fun getAllKotestClasses(): List<KotestClassInfo> {
+        if(!isTestFile) return emptyList()
+
+        val kotestClasses = listOf("io.kotest.core.spec.Spec")
+        val visitor = object : KtTreeVisitorVoid() {
+            var descriptors: MutableList<ClassDescriptor> = mutableListOf()
+            override fun visitClassOrObject(classOrObject: KtClassOrObject) {
+                super.visitClassOrObject(classOrObject)
+                // Get package name and class name
+                val packageFqName = classOrObject.containingKtFile.packageFqName
+                val classNameStr = classOrObject.name!!
+                val classFqName = FqName(classNameStr)
+
+                // Create ClassId with both FqNames
+                val classId = ClassId(
+                    packageFqName,
+                    classFqName,
+                    false
+                )
+
+                // Look up the class descriptor
+                module.findClassAcrossModuleDependencies(classId)?.let {
+                    descriptors.add(it)
+                }
+            }
+        }
+
+        parse.accept(visitor)
+        val testClasses = visitor.descriptors.filter { getAllSuperclasses(it).any { superClass -> superClass.fqNameSafe.asString() in kotestClasses } }
+
+        if(testClasses.isEmpty()) {
+            return emptyList()
+        }
+        return testClasses.map { testClass ->
+            val ktClass = parse.findDescendantOfType<KtClass> {
+                compile?.get(BindingContext.CLASS, it) == testClass
+            }
+
+            val document = parse.viewProvider.document
+            val classRange = ktClass?.textRange?.toRange(document)
+
+            val describeBlocks = mutableListOf<DescribeInfo>()
+
+            ktClass?.collectDescendantsOfType<KtCallExpression> {
+                it.calleeExpression?.text == "describe"
+            }?.forEach { describeExpr ->
+                val describeText = describeExpr.valueArguments.firstOrNull()?.
+                getArgumentExpression()?.text?.trim('"').orEmpty()
+
+                val describeRange = describeExpr.textRange.toRange(document)
+
+                // Find nested 'it' blocks within this describe
+                val itBlocks = describeExpr.lambdaArguments.lastOrNull()?.
+                getLambdaExpression()?.bodyExpression?.
+                collectDescendantsOfType<KtCallExpression>() {
+                    it.calleeExpression?.text == "it"
+                }?.map { itExpr ->
+                    val itText = itExpr.valueArguments.firstOrNull()?.
+                    getArgumentExpression()?.text?.trim('"')
+                    val itRange = itExpr.textRange.toRange(document)
+
+                    ItInfo(it = itText ?: "", range = itRange)
+                } ?: emptyList()
+
+                describeBlocks.add(
+                    DescribeInfo(
+                    describe = describeText,
+                    its = itBlocks,
+                    range = describeRange,
+                )
+                )
+            }
+
+            KotestClassInfo(
+                className = testClass.fqNameSafe.asString(),
+                describes = describeBlocks,
+                range = classRange
+            )
+        }
+    }
+
+    private fun getAllSuperclasses(descriptor: DeclarationDescriptor): Set<ClassDescriptor> {
+        // If it's not a class descriptor, return empty set
+        if (descriptor !is ClassDescriptor) return emptySet()
+
+        if(descriptor.fqNameSafe.asString() == "kotlin.Any") return emptySet()
+
+        val result = mutableSetOf<ClassDescriptor>()
+
+        // Get immediate superclasses through type constructor
+        val superTypes = descriptor.typeConstructor.supertypes
+
+        // Add all direct superclasses
+        superTypes.mapNotNullTo(result) { it.constructor.declarationDescriptor as? ClassDescriptor }
+
+        // Recursively get superclasses of superclasses
+        superTypes.forEach { superType ->
+            (superType.constructor.declarationDescriptor as? ClassDescriptor)?.let { superClass ->
+                result.addAll(getAllSuperclasses(superClass))
+            }
+        }
+
+        return result
+    }
 }
+

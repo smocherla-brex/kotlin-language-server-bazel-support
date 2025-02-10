@@ -1,0 +1,9 @@
+{
+  "bazelTarget": "@maven//:org_jetbrains_kotlinx_kotlinx_coroutines_core",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.7.3/processed_kotlinx-coroutines-core-1.7.3.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/maven/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.7.3/kotlinx-coroutines-core-1.7.3-sources.jar"
+  }],
+  "sourceFiles": [{
+  }]
+}

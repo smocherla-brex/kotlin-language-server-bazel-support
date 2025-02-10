@@ -107,7 +107,7 @@ class SymbolIndex(
                     // Remove everything first.
                     Symbols.deleteAll()
                     // Add new ones.
-                    addDeclarations(allDescriptors(module, exclusions))
+                    addDeclarationsInBatch(allDescriptors(module, exclusions))
 
                     val finished = System.currentTimeMillis()
                     val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
@@ -122,19 +122,40 @@ class SymbolIndex(
         }
     }
 
+    private fun addDeclarationsInBatch(declarations: Sequence<DeclarationDescriptor>, batchSize: Int = 1000) {
+        declarations
+            .map { declaration ->
+                val (descriptorFqn, extensionReceiverFqn) = getFqNames(declaration)
+                Triple(descriptorFqn, extensionReceiverFqn, declaration)
+            }
+            .filter { (descriptorFqn, extensionReceiverFqn, _) ->
+                validFqName(descriptorFqn) && (extensionReceiverFqn?.let { validFqName(it) } != false)
+            }
+            .chunked(batchSize)
+            .forEach { batch ->
+                Symbols.batchInsert(batch) { (descriptorFqn, extensionReceiverFqn, declaration) ->
+                    this[Symbols.fqName] = descriptorFqn.toString()
+                    this[Symbols.shortName] = descriptorFqn.shortName().toString()
+                    this[Symbols.kind] = declaration.accept(ExtractSymbolKind, Unit).rawValue
+                    this[Symbols.visibility] = declaration.accept(ExtractSymbolVisibility, Unit).rawValue
+                    this[Symbols.extensionReceiverType] = extensionReceiverFqn?.toString()
+                }
+            }
+    }
+
     // Removes a list of indexes and adds another list. Everything is done in the same transaction.
     fun updateIndexes(remove: Sequence<DeclarationDescriptor>, add: Sequence<DeclarationDescriptor>) {
         val started = System.currentTimeMillis()
-        LOG.info("Updating symbol index...")
+        LOG.debug("Updating symbol index...")
 
         try {
             transaction(db) {
                 removeDeclarations(remove)
-                addDeclarations(add)
+                addDeclarationsInBatch(add)
 
                 val finished = System.currentTimeMillis()
                 val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
-                LOG.info("Updated symbol index in ${finished - started} ms! (${count} symbol(s))")
+                LOG.debug("Updated symbol index in ${finished - started} ms! (${count} symbol(s))")
             }
         } catch (e: Exception) {
             LOG.error("Error while updating symbol index")
@@ -149,23 +170,6 @@ class SymbolIndex(
             if (validFqName(descriptorFqn) && (extensionReceiverFqn?.let { validFqName(it) } != false)) {
                 Symbols.deleteWhere {
                     (Symbols.fqName eq descriptorFqn.toString()) and (Symbols.extensionReceiverType eq extensionReceiverFqn?.toString())
-                }
-            } else {
-                LOG.warn("Excluding symbol {} from index since its name is too long", descriptorFqn.toString())
-            }
-        }
-
-    private fun addDeclarations(declarations: Sequence<DeclarationDescriptor>) =
-        declarations.forEach { declaration ->
-            val (descriptorFqn, extensionReceiverFqn) = getFqNames(declaration)
-
-            if (validFqName(descriptorFqn) && (extensionReceiverFqn?.let { validFqName(it) } != false)) {
-                SymbolEntity.new {
-                    fqName = descriptorFqn.toString()
-                    shortName = descriptorFqn.shortName().toString()
-                    kind = declaration.accept(ExtractSymbolKind, Unit).rawValue
-                    visibility = declaration.accept(ExtractSymbolVisibility, Unit).rawValue
-                    extensionReceiverType = extensionReceiverFqn?.toString()
                 }
             } else {
                 LOG.warn("Excluding symbol {} from index since its name is too long", descriptorFqn.toString())

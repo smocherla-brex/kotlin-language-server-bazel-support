@@ -53,4 +53,17 @@ tasks.withType<Detekt>().configureEach {
     }
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+kotlin {
+    @Suppress("UnstableApiUsage")
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.AZUL
+    }
+}
+
 tasks.check.get().dependsOn(tasks.detekt)

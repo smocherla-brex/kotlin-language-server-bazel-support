@@ -6,8 +6,6 @@ import org.eclipse.lsp4j.Range
 import com.intellij.psi.PsiDocCommentBase
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.renderer.ClassifierNamePolicy
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -16,18 +14,29 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.javacs.kt.CompiledFile
+import org.javacs.kt.CompilerClassPath
+import org.javacs.kt.classpath.PackageSourceMapping
+import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.completion.DECL_RENDERER
 import org.javacs.kt.position.position
 import org.javacs.kt.util.findParent
 import org.javacs.kt.signaturehelp.getDocString
+import org.javacs.kt.sourcejars.SourceJarParser
+import org.javacs.kt.util.descriptorOfContainingClass
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.isCompanionObject
 import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
+import kotlin.io.path.absolutePathString
 
-fun hoverAt(file: CompiledFile, cursor: Int): Hover? {
+fun hoverAt(file: CompiledFile, compiler: Compiler, compilerClassPath: CompilerClassPath, cursor: Int): Hover? {
     val (ref, target) = file.referenceAtPoint(cursor) ?: return typeHoverAt(file, cursor)
+    val sourceDoc = docFromSourceJars(target, compiler, compilerClassPath.packageSourceMappings)
     val javaDoc = getDocString(file, cursor)
+    val doc = if(sourceDoc != null && sourceDoc.isNotEmpty()) sourceDoc else javaDoc
     val location = ref.textRange
     val hoverText = DECL_RENDERER.render(target)
-    val hover = MarkupContent("markdown", listOf("```kotlin\n$hoverText\n```", javaDoc).filter { it.isNotEmpty() }.joinToString("\n---\n"))
+    val hover = MarkupContent("markdown", listOf("```kotlin\n$hoverText\n```", doc).filter { it.isNotEmpty() }.joinToString("\n---\n"))
     val range = Range(
             position(file.content, location.startOffset),
             position(file.content, location.endOffset))
@@ -91,4 +100,50 @@ private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext):
         }
     }
     return result
+}
+
+private fun docFromSourceJars(target: DeclarationDescriptor, compiler: Compiler, packageSourceMappings: Set<PackageSourceMapping>): String? {
+    if (packageSourceMappings.isEmpty()) return null
+
+    return kDocForDescriptor(packageSourceMappings, target, compiler)
+}
+
+private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
+    if(descriptor != null && descriptor.isCompanionObject) {
+        return descriptor.fqNameSafe.asString().replace(".Companion", "")
+    }
+    return descriptor?.fqNameSafe?.asString()
+}
+
+private fun kDocForDescriptor(
+    packageSourceMappings: Set<PackageSourceMapping>,
+    descriptor: DeclarationDescriptor,
+    compiler: Compiler
+): String? {
+
+    fun processSourceJar(mapping: PackageSourceMapping): String? {
+        val classDescriptor = descriptorOfContainingClass(descriptor)
+        val packageName = descriptor.containingPackage()?.asString() ?: return null
+        val className = classDescriptor?.name?.toString() ?: return null
+        val symbolName = if(descriptor.isCompanionObject()) classDescriptor.name.asString().replace(".Companion", "") else descriptor.name.asString()
+        val sourceJar = mapping.sourceJar
+
+        return findKdoc(sourceJar.absolutePathString(), packageName, className, symbolName, compiler)
+    }
+
+    val possibleMappings = packageSourceMappings.filter { it.sourcePackage == descriptor.containingPackage()?.asString() }
+    return possibleMappings.firstNotNullOfOrNull { processSourceJar(it) }
+}
+
+private fun findKdoc(sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
+    val sourceFileInfo = SourceJarParser.findSourceFileInfo(
+        sourcesJarPath = sourceJar,
+        packageName = packageName,
+        className = className
+    ) ?: return null
+
+    return compiler.findDeclarationComment(
+        sourceFileInfo.contents,
+        declarationName = symbolName,
+    )
 }

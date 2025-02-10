@@ -1,6 +1,7 @@
 package org.javacs.kt
 
 import org.javacs.kt.classpath.ClassPathEntry
+import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.classpath.defaultClassPathResolver
 import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.database.DatabaseService
@@ -26,6 +27,7 @@ class CompilerClassPath(
     private val javaSourcePath = mutableSetOf<Path>()
     private val buildScriptClassPath = mutableSetOf<Path>()
     val classPath = mutableSetOf<ClassPathEntry>()
+    val packageSourceMappings = mutableSetOf<PackageSourceMapping>()
     val outputDirectory: File = Files.createTempDirectory("klsBuildOutput").toFile()
     val javaHome: String? = System.getProperty("java.home", null)
 
@@ -46,7 +48,7 @@ class CompilerClassPath(
     }
 
     /** Updates and possibly reinstantiates the compiler using new paths. */
-    private fun refresh(
+    internal fun refresh(
         updateClassPath: Boolean = true,
         updateBuildScriptClassPath: Boolean = true,
         updateJavaSourcePath: Boolean = true
@@ -62,6 +64,13 @@ class CompilerClassPath(
                     syncPaths(classPath, newClassPath, "class path") { it.compiledJar }
                 }
                 refreshCompiler = true
+            }
+
+            val newPackageSourceMappings = resolver.packageSourceJarMappings
+            if(newPackageSourceMappings != packageSourceMappings) {
+                synchronized(packageSourceMappings) {
+                    syncPaths(packageSourceMappings,newPackageSourceMappings,"package source mappings") { it.sourceJar }
+                }
             }
 
             async.compute {

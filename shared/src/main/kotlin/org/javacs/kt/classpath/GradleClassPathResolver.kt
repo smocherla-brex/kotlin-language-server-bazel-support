@@ -34,6 +34,9 @@ internal class GradleClassPathResolver(private val path: Path, private val inclu
         }
     }
 
+    override val packageSourceJarMappings: Set<PackageSourceMapping>
+        get() = TODO("Not yet implemented")
+
     override val currentBuildFileVersion: Long get() = path.toFile().lastModified()
 
     companion object {
