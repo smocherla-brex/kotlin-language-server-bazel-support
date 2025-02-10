@@ -10,6 +10,8 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.VirtualFileSystem
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
+import org.eclipse.lsp4j.Location
+import org.eclipse.lsp4j.Range
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
 import org.jetbrains.kotlin.cli.jvm.config.addJavaSourceRoots
@@ -62,6 +64,7 @@ import org.javacs.kt.CompilerConfiguration
 import org.javacs.kt.ScriptsConfiguration
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.LoggingMessageCollector
+import org.javacs.kt.util.getRange
 import org.jetbrains.kotlin.cli.common.output.writeAllTo
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
@@ -78,7 +81,9 @@ import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.js.parser.parse
 import java.io.File
+import java.net.URI
 
 private val GRADLE_DSL_DEPENDENCY_PATTERN = Regex("^gradle-(?:kotlin-dsl|core).*\\.jar$")
 
@@ -606,6 +611,30 @@ class Compiler(
                 state.factory.writeAllTo(it)
             }
         }
+    }
+
+    fun findDeclarationRange(
+        sourceText: String,
+        packageName: String,
+        className: String,
+        declarationName: String
+    ): Range? {
+        val psiFile = createPsiFile(sourceText, file=Paths.get("source.dummy.kt"))
+
+        val visitor = object : KtTreeVisitorVoid() {
+            var range: Range? = null
+
+            override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
+                super.visitNamedDeclaration(declaration)
+                if (declaration.name == declarationName) {
+                    val identifier = declaration.nameIdentifier ?: return
+                    range = identifier.getRange()
+                }
+            }
+        }
+
+        psiFile.accept(visitor)
+        return visitor.range
     }
 
     override fun close() {

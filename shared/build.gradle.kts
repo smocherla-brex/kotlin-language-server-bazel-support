@@ -15,6 +15,7 @@ dependencies {
     implementation(platform(project(":platform")))
 
     implementation(kotlin("stdlib"))
+    implementation(libs.com.google.code.gson)
     implementation(libs.org.jetbrains.exposed.core)
     implementation(libs.org.jetbrains.exposed.dao)
     testImplementation(libs.hamcrest.all)

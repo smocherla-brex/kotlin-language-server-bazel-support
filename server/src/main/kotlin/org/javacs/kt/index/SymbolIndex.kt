@@ -107,7 +107,7 @@ class SymbolIndex(
                     // Remove everything first.
                     Symbols.deleteAll()
                     // Add new ones.
-                    addDeclarations(allDescriptors(module, exclusions))
+                    addDeclarationsInBatch(allDescriptors(module, exclusions))
 
                     val finished = System.currentTimeMillis()
                     val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
@@ -122,6 +122,27 @@ class SymbolIndex(
         }
     }
 
+    private fun addDeclarationsInBatch(declarations: Sequence<DeclarationDescriptor>, batchSize: Int = 1000) {
+        declarations
+            .map { declaration ->
+                val (descriptorFqn, extensionReceiverFqn) = getFqNames(declaration)
+                Triple(descriptorFqn, extensionReceiverFqn, declaration)
+            }
+            .filter { (descriptorFqn, extensionReceiverFqn, _) ->
+                validFqName(descriptorFqn) && (extensionReceiverFqn?.let { validFqName(it) } != false)
+            }
+            .chunked(batchSize)
+            .forEach { batch ->
+                Symbols.batchInsert(batch) { (descriptorFqn, extensionReceiverFqn, declaration) ->
+                    this[Symbols.fqName] = descriptorFqn.toString()
+                    this[Symbols.shortName] = descriptorFqn.shortName().toString()
+                    this[Symbols.kind] = declaration.accept(ExtractSymbolKind, Unit).rawValue
+                    this[Symbols.visibility] = declaration.accept(ExtractSymbolVisibility, Unit).rawValue
+                    this[Symbols.extensionReceiverType] = extensionReceiverFqn?.toString()
+                }
+            }
+    }
+
     // Removes a list of indexes and adds another list. Everything is done in the same transaction.
     fun updateIndexes(remove: Sequence<DeclarationDescriptor>, add: Sequence<DeclarationDescriptor>) {
         val started = System.currentTimeMillis()
@@ -130,7 +151,7 @@ class SymbolIndex(
         try {
             transaction(db) {
                 removeDeclarations(remove)
-                addDeclarations(add)
+                addDeclarationsInBatch(add)
 
                 val finished = System.currentTimeMillis()
                 val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]

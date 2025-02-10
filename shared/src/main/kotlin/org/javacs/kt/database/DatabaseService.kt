@@ -26,7 +26,7 @@ class DatabaseMetadataEntity(id: EntityID<Int>) : IntEntity(id) {
 class DatabaseService {
 
     companion object {
-        const val DB_VERSION = 4
+        const val DB_VERSION = 8
         const val DB_FILENAME = "kls_database.db"
     }
 

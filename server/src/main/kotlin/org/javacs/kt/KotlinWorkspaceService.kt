@@ -16,6 +16,7 @@ import java.util.concurrent.CompletableFuture
 import com.google.gson.JsonElement
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import org.javacs.kt.command.BAZEL_REFRESH_CLASSPATH
 
 class KotlinWorkspaceService(
     private val sf: SourceFiles,
@@ -50,6 +51,12 @@ class KotlinWorkspaceService(
                     )
                 )))))
             }
+            BAZEL_REFRESH_CLASSPATH -> {
+                LOG.info { "Refreshing bazel class path" }
+                cp.refresh()
+                sf.addWorkspaceRoot(cp.workspaceRoots.first())
+                sp.refresh()
+            }
         }
 
         return CompletableFuture.completedFuture(null)
@@ -83,112 +90,115 @@ class KotlinWorkspaceService(
     @Suppress("LongMethod", "CyclomaticComplexMethod", "NestedBlockDepth")
     override fun didChangeConfiguration(params: DidChangeConfigurationParams) {
         val settings = params.settings as? JsonObject
-        settings?.get("kotlin")?.asJsonObject?.apply {
-            // Update deprecated configuration keys
-            get("debounceTime")?.asLong?.let {
-                config.diagnostics.debounceTime = it
-                docService.updateDebouncer()
-            }
-            get("snippetsEnabled")?.asBoolean?.let { config.completion.snippets.enabled = it }
-
-            // Update compiler options
-            get("compiler")?.asJsonObject?.apply {
-                val compiler = config.compiler
-                get("jvm")?.asJsonObject?.apply {
-                    val jvm = compiler.jvm
-                    get("target")?.asString?.let {
-                        jvm.target = it
-                        cp.updateCompilerConfiguration()
-                    }
+        settings?.get("brex")?.asJsonObject?.apply {
+            settings?.get("kotlinLanguageServer")?.asJsonObject?.apply {
+                // Update deprecated configuration keys
+                get("debounceTime")?.asLong?.let {
+                    config.diagnostics.debounceTime = it
+                    docService.updateDebouncer()
                 }
-            }
+                get("snippetsEnabled")?.asBoolean?.let { config.completion.snippets.enabled = it }
 
-            // Update options for formatting
-            get("formatting")?.asJsonObject?.apply {
-                val formatting = config.formatting
-                get("formatter")?.asString?.let {
-                    formatting.formatter = it
-                }
-                get("ktfmt")?.asJsonObject?.apply {
-                    val ktfmt = formatting.ktfmt
-                    get("style")?.asString?.let { ktfmt.style = it }
-                    get("indent")?.asInt?.let { ktfmt.indent = it }
-                    get("maxWidth")?.asInt?.let { ktfmt.maxWidth = it }
-                    get("continuationIndent")?.asInt?.let { ktfmt.continuationIndent = it }
-                    get("removeUnusedImports")?.asBoolean?.let { ktfmt.removeUnusedImports = it }
-                }
-            }
-
-            // Update options for inlay hints
-            get("inlayHints")?.asJsonObject?.apply {
-                val inlayHints = config.inlayHints
-                get("typeHints")?.asBoolean?.let { inlayHints.typeHints = it }
-                get("parameterHints")?.asBoolean?.let { inlayHints.parameterHints = it }
-                get("chainedHints")?.asBoolean?.let { inlayHints.chainedHints = it }
-            }
-
-            // Update diagnostics options
-            // Note that the 'linting' key is deprecated and only kept
-            // for backwards compatibility.
-            for (diagnosticsKey in listOf("linting", "diagnostics")) {
-                get(diagnosticsKey)?.asJsonObject?.apply {
-                    val diagnostics = config.diagnostics
-                    get("enabled")?.asBoolean?.let {
-                        diagnostics.enabled = it
-                    }
-                    get("level")?.asString?.let {
-                        diagnostics.level = when (it.lowercase()) {
-                            "error" -> DiagnosticSeverity.Error
-                            "warning" -> DiagnosticSeverity.Warning
-                            "information" -> DiagnosticSeverity.Information
-                            else -> DiagnosticSeverity.Hint
+                // Update compiler options
+                get("compiler")?.asJsonObject?.apply {
+                    val compiler = config.compiler
+                    get("jvm")?.asJsonObject?.apply {
+                        val jvm = compiler.jvm
+                        get("target")?.asString?.let {
+                            jvm.target = it
+                            cp.updateCompilerConfiguration()
                         }
                     }
-                    get("debounceTime")?.asLong?.let {
-                        diagnostics.debounceTime = it
-                        docService.updateDebouncer()
+                }
+
+                // Update options for formatting
+                get("formatting")?.asJsonObject?.apply {
+                    val formatting = config.formatting
+                    get("formatter")?.asString?.let {
+                        formatting.formatter = it
+                    }
+                    get("ktfmt")?.asJsonObject?.apply {
+                        val ktfmt = formatting.ktfmt
+                        get("style")?.asString?.let { ktfmt.style = it }
+                        get("indent")?.asInt?.let { ktfmt.indent = it }
+                        get("maxWidth")?.asInt?.let { ktfmt.maxWidth = it }
+                        get("continuationIndent")?.asInt?.let { ktfmt.continuationIndent = it }
+                        get("removeUnusedImports")?.asBoolean?.let { ktfmt.removeUnusedImports = it }
                     }
                 }
-            }
 
-            // Update scripts options
-            get("scripts")?.asJsonObject?.apply {
-                val scripts = config.scripts
-                get("enabled")?.asBoolean?.let { scripts.enabled = it }
-                get("buildScriptsEnabled")?.asBoolean?.let { scripts.buildScriptsEnabled = it }
-                sf.updateExclusions()
-            }
-
-            // Update code generation options
-            get("codegen")?.asJsonObject?.apply {
-                val codegen = config.codegen
-                get("enabled")?.asBoolean?.let { codegen.enabled = it }
-            }
-
-            // Update code-completion options
-            get("completion")?.asJsonObject?.apply {
-                val completion = config.completion
-                get("snippets")?.asJsonObject?.apply {
-                    val snippets = completion.snippets
-                    get("enabled")?.asBoolean?.let { snippets.enabled = it }
+                // Update options for inlay hints
+                get("inlayHints")?.asJsonObject?.apply {
+                    val inlayHints = config.inlayHints
+                    get("typeHints")?.asBoolean?.let { inlayHints.typeHints = it }
+                    get("parameterHints")?.asBoolean?.let { inlayHints.parameterHints = it }
+                    get("chainedHints")?.asBoolean?.let { inlayHints.chainedHints = it }
                 }
-            }
 
-            // Update indexing options
-            get("indexing")?.asJsonObject?.apply {
-                val indexing = config.indexing
-                get("enabled")?.asBoolean?.let {
-                    indexing.enabled = it
+                // Update diagnostics options
+                // Note that the 'linting' key is deprecated and only kept
+                // for backwards compatibility.
+                for (diagnosticsKey in listOf("linting", "diagnostics")) {
+                    get(diagnosticsKey)?.asJsonObject?.apply {
+                        val diagnostics = config.diagnostics
+                        get("enabled")?.asBoolean?.let {
+                            diagnostics.enabled = it
+                        }
+                        get("level")?.asString?.let {
+                            diagnostics.level = when (it.lowercase()) {
+                                "error" -> DiagnosticSeverity.Error
+                                "warning" -> DiagnosticSeverity.Warning
+                                "information" -> DiagnosticSeverity.Information
+                                else -> DiagnosticSeverity.Hint
+                            }
+                        }
+                        get("debounceTime")?.asLong?.let {
+                            diagnostics.debounceTime = it
+                            docService.updateDebouncer()
+                        }
+                    }
                 }
-            }
 
-            // Update options about external sources e.g. JAR files, decompilers, etc
-            get("externalSources")?.asJsonObject?.apply {
-                val externalSources = config.externalSources
-                get("useKlsScheme")?.asBoolean?.let { externalSources.useKlsScheme = it }
-                get("autoConvertToKotlin")?.asBoolean?.let { externalSources.autoConvertToKotlin = it }
+                // Update scripts options
+                get("scripts")?.asJsonObject?.apply {
+                    val scripts = config.scripts
+                    get("enabled")?.asBoolean?.let { scripts.enabled = it }
+                    get("buildScriptsEnabled")?.asBoolean?.let { scripts.buildScriptsEnabled = it }
+                    sf.updateExclusions()
+                }
+
+                // Update code generation options
+                get("codegen")?.asJsonObject?.apply {
+                    val codegen = config.codegen
+                    get("enabled")?.asBoolean?.let { codegen.enabled = it }
+                }
+
+                // Update code-completion options
+                get("completion")?.asJsonObject?.apply {
+                    val completion = config.completion
+                    get("snippets")?.asJsonObject?.apply {
+                        val snippets = completion.snippets
+                        get("enabled")?.asBoolean?.let { snippets.enabled = it }
+                    }
+                }
+
+                // Update indexing options
+                get("indexing")?.asJsonObject?.apply {
+                    val indexing = config.indexing
+                    get("enabled")?.asBoolean?.let {
+                        indexing.enabled = it
+                    }
+                }
+
+                // Update options about external sources e.g. JAR files, decompilers, etc
+                get("externalSources")?.asJsonObject?.apply {
+                    val externalSources = config.externalSources
+                    get("useKlsScheme")?.asBoolean?.let { externalSources.useKlsScheme = it }
+                    get("autoConvertToKotlin")?.asBoolean?.let { externalSources.autoConvertToKotlin = it }
+                }
             }
         }
+
 
         LOG.info("Updated configuration: {}", settings)
     }

@@ -46,7 +46,7 @@ class CompilerClassPath(
     }
 
     /** Updates and possibly reinstantiates the compiler using new paths. */
-    private fun refresh(
+    internal fun refresh(
         updateClassPath: Boolean = true,
         updateBuildScriptClassPath: Boolean = true,
         updateJavaSourcePath: Boolean = true

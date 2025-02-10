@@ -17,9 +17,13 @@ import java.io.IOException
 import java.io.FileNotFoundException
 import java.net.URI
 import java.nio.file.FileSystems
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.stream.Collectors
+import kotlin.io.path.absolute
+import kotlin.io.path.isRegularFile
 
 private class SourceVersion(val content: String, val version: Int, val language: Language?, val isTemporary: Boolean)
 
@@ -180,12 +184,18 @@ class SourceFiles(
     }
 
     private fun findSourceFiles(root: Path): Set<URI> {
-        val sourceMatcher = FileSystems.getDefault().getPathMatcher("glob:*.{kt,kts}")
-        return SourceExclusions(listOf(root), scriptsConfig)
-            .walkIncluded()
-            .filter { sourceMatcher.matches(it.fileName) }
-            .map(Path::toUri)
-            .toSet()
+        val bazelBin = root.resolve("bazel-bin")
+        if(!Files.exists(bazelBin)) {
+            return emptySet()
+        }
+        return Files.walk(bazelBin, FileVisitOption.FOLLOW_LINKS).use { paths ->
+            paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("klsp-srcs.txt") }
+                .map { path: Path -> Files.readAllLines(path)
+                    .map { root.resolve(it).toAbsolutePath().toUri() } }
+                .collect(Collectors.toList())
+                .flatten()
+                .toSet()
+        }
     }
 
     fun updateExclusions() {
@@ -239,6 +249,9 @@ private fun patch(sourceText: String, change: TextDocumentContentChangeEvent): S
 }
 
 private fun logAdded(sources: Collection<URI>, rootPath: Path?) {
+    sources.map {
+        LOG.info("Adding $it for $rootPath")
+    }
     LOG.info("Adding {} under {} to source path", describeURIs(sources), rootPath)
 }
 

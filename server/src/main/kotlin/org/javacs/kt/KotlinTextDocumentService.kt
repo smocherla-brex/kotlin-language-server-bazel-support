@@ -183,6 +183,7 @@ class KotlinTextDocumentService(
 
     override fun didOpen(params: DidOpenTextDocumentParams) {
         val uri = parseURI(params.textDocument.uri)
+        LOG.info { "Linting $uri" }
         sf.open(uri, params.textDocument.text, params.textDocument.version)
         lintNow(uri)
     }
