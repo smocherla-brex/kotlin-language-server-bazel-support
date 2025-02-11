@@ -615,8 +615,6 @@ class Compiler(
 
     fun findDeclarationRange(
         sourceText: String,
-        packageName: String,
-        className: String,
         declarationName: String
     ): Range? {
         val psiFile = createPsiFile(sourceText, file=Paths.get("source.dummy.kt"))
@@ -635,6 +633,34 @@ class Compiler(
 
         psiFile.accept(visitor)
         return visitor.range
+    }
+
+    /**
+     * Finds a comment (if one exists) if the declaration exists in the given source text
+     * and extracts it through the PSI
+     */
+    fun findDeclarationComment(
+        sourceText: String,
+        declarationName: String
+    ): String? {
+        val psiFile = createPsiFile(sourceText, file=Paths.get("source.dummy.kt"))
+
+        val visitor = object : KtTreeVisitorVoid() {
+            var docText: String? = null
+
+            override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
+                super.visitNamedDeclaration(declaration)
+                if (declaration.name == declarationName && (declaration is KtClassOrObject ||
+                        declaration is KtNamedFunction ||
+                        declaration is KtProperty ||
+                        declaration is KtParameter)) {
+                    docText = declaration.docComment?.getDefaultSection()?.getContent()
+                }
+            }
+        }
+
+        psiFile.accept(visitor)
+        return visitor.docText
     }
 
     override fun close() {

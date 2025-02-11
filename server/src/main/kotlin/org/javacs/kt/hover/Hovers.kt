@@ -6,8 +6,6 @@ import org.eclipse.lsp4j.Range
 import com.intellij.psi.PsiDocCommentBase
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.renderer.ClassifierNamePolicy
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -16,18 +14,31 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.javacs.kt.CompiledFile
+import org.javacs.kt.CompilerClassPath
+import org.javacs.kt.classpath.ClassPathEntry
+import org.javacs.kt.classpath.JarMetadata
+import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.completion.DECL_RENDERER
 import org.javacs.kt.position.position
 import org.javacs.kt.util.findParent
 import org.javacs.kt.signaturehelp.getDocString
+import org.javacs.kt.sourcejars.SourceJarParser
+import org.javacs.kt.util.descriptorOfContainingClass
+import org.javacs.kt.util.getSourceJarPath
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.isCompanionObject
 import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
+import java.nio.file.Path
 
-fun hoverAt(file: CompiledFile, cursor: Int): Hover? {
+fun hoverAt(file: CompiledFile, compiler: Compiler, compilerClassPath: CompilerClassPath, cursor: Int): Hover? {
     val (ref, target) = file.referenceAtPoint(cursor) ?: return typeHoverAt(file, cursor)
+    val sourceDoc = docFromSourceJars(target, compiler, compilerClassPath.classPath)
     val javaDoc = getDocString(file, cursor)
+    val doc = if(sourceDoc != null && sourceDoc.isNotEmpty()) sourceDoc else javaDoc
     val location = ref.textRange
     val hoverText = DECL_RENDERER.render(target)
-    val hover = MarkupContent("markdown", listOf("```kotlin\n$hoverText\n```", javaDoc).filter { it.isNotEmpty() }.joinToString("\n---\n"))
+    val hover = MarkupContent("markdown", listOf("```kotlin\n$hoverText\n```", doc).filter { it.isNotEmpty() }.joinToString("\n---\n"))
     val range = Range(
             position(file.content, location.startOffset),
             position(file.content, location.endOffset))
@@ -91,4 +102,56 @@ private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext):
         }
     }
     return result
+}
+
+private fun docFromSourceJars(target: DeclarationDescriptor, compiler: Compiler, classPathEntries: Set<ClassPathEntry>): String? {
+    val jarMetadata = classPathEntries.mapNotNull { it.jarMetadataJson }
+    if (jarMetadata.isEmpty()) return null
+
+    return kDocForDescriptor(jarMetadata, target, compiler)
+}
+
+private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
+    if(descriptor != null && descriptor.isCompanionObject) {
+        return descriptor.fqNameSafe.asString().replace(".Companion", "")
+    }
+    return descriptor?.fqNameSafe?.asString()
+}
+
+private fun kDocForDescriptor(
+    jarMetadata: List<Path?>,
+    descriptor: DeclarationDescriptor,
+    compiler: Compiler
+): String? {
+
+    // Helper function to process a single jar entry
+    // TODO: this is also duplicated in goto, so consolidate with a refactor
+    fun processJarEntry(jarEntry: Path?): String? {
+        val analysis = JarMetadata.fromMetadataJsonFile(jarEntry?.toFile()) ?: return null
+        val classDescriptor = descriptorOfContainingClass(descriptor)
+        val descriptorFqName = descriptorFqNameForClass(classDescriptor)
+        val sourceJar = analysis.classes[descriptorFqName]?.sourceJars?.firstOrNull() ?: return null
+        val packageName = descriptor.containingPackage()?.asString() ?: return null
+        val className = classDescriptor?.name?.toString() ?: return null
+        val symbolName = if(descriptor.isCompanionObject()) classDescriptor.name.asString().replace(".Companion", "") else descriptor.name.asString()
+
+        return findKdoc(sourceJar, packageName, className, symbolName, compiler)
+    }
+
+    // Try each jar entry until we find a location
+    return jarMetadata.firstNotNullOfOrNull { processJarEntry(it) }
+}
+
+private fun findKdoc(sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
+    val actualSourceJar = getSourceJarPath(sourceJar)
+    val sourceFileInfo = SourceJarParser().findSourceFileInfo(
+        sourcesJarPath = actualSourceJar,
+        packageName = packageName,
+        className = className
+    ) ?: return null
+
+    return compiler.findDeclarationComment(
+        sourceFileInfo.contents,
+        declarationName = symbolName,
+    )
 }

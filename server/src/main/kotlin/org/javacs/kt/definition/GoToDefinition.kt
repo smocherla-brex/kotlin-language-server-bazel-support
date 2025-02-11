@@ -121,30 +121,26 @@ private fun locationFromClassPath(target: DeclarationDescriptor, classPathEntrie
     val jarMetadata = classPathEntries.mapNotNull { it.jarMetadataJson }
     if (jarMetadata.isEmpty()) return null
 
-    when(target) {
-        is ClassDescriptor -> {
-            return locationForClass(jarMetadata, target, compiler, tempDir)
-        }
-        // TODO: add support for methods
-        else -> return null
-    }
+    return locationForDescriptor(jarMetadata, target, compiler, tempDir)
 }
 
-
-private fun locationForClass(
+private fun locationForDescriptor(
     jarMetadata: List<Path?>,
-    descriptor: ClassDescriptor,
+    descriptor: DeclarationDescriptor,
     compiler: Compiler,
     tempDir: TemporaryDirectory
 ): Location? {
+
     // Helper function to process a single jar entry
     fun processJarEntry(jarEntry: Path?): Location? {
         val analysis = JarMetadata.fromMetadataJsonFile(jarEntry?.toFile()) ?: return null
-        val sourceJar = analysis.classes[descriptor.fqNameSafe.asString()]?.sourceJars?.firstOrNull() ?: return null
+        val classDescriptor = descriptorOfContainingClass(descriptor)
+        val sourceJar = analysis.classes[classDescriptor?.fqNameSafe?.asString()]?.sourceJars?.firstOrNull() ?: return null
         val packageName = descriptor.containingPackage()?.asString() ?: return null
-        val className = descriptor.name.asString()
+        val className = classDescriptor?.name?.toString() ?: return null
+        val symbolName = descriptor.name.asString()
 
-        return findLocation(sourceJar, packageName, className, compiler, tempDir)
+        return findLocation(sourceJar, packageName, className, symbolName, compiler, tempDir)
     }
 
     // Try each jar entry until we find a location
@@ -155,6 +151,7 @@ private fun findLocation(
     sourceJar: String,
     packageName: String,
     className: String,
+    symbolName: String,
     compiler: Compiler,
     tempDir: TemporaryDirectory
 ): Location? {
@@ -167,9 +164,7 @@ private fun findLocation(
 
     val range = compiler.findDeclarationRange(
         sourceFileInfo.contents,
-        packageName,
-        className,
-        declarationName = className
+        declarationName = symbolName,
     )
 
     return when {

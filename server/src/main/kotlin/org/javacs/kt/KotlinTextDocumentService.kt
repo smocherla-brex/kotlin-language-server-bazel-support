@@ -111,7 +111,7 @@ class KotlinTextDocumentService(
             LOG.info("Hovering at {}", describePosition(position))
 
             val (file, cursor) = recover(position, Recompile.NEVER) ?: return@compute null
-            hoverAt(file, cursor) ?: noResult("No hover found at ${describePosition(position)}", null)
+            hoverAt(file, cp.compiler, cp, cursor) ?: noResult("No hover found at ${describePosition(position)}", null)
         }
     }
 
