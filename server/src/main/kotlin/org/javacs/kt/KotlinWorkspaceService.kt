@@ -17,6 +17,7 @@ import com.google.gson.JsonElement
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import org.javacs.kt.command.BAZEL_REFRESH_CLASSPATH
+import org.javacs.kt.command.KOTEST_TESTS_INFO
 
 class KotlinWorkspaceService(
     private val sf: SourceFiles,
@@ -56,6 +57,15 @@ class KotlinWorkspaceService(
                 cp.refresh()
                 sf.addWorkspaceRoot(cp.workspaceRoots.first())
                 sp.refresh()
+            }
+            KOTEST_TESTS_INFO -> {
+                val fileUri = gson.fromJson(args[0] as JsonElement, String::class.java)
+                val parsedUri = parseURI(fileUri)
+
+                val compiledFile = sp.latestCompiledVersion(parsedUri)
+                val tests = compiledFile.getAllKotestClasses()
+                val gson = Gson()
+                return CompletableFuture.completedFuture(gson.toJson(tests))
             }
         }
 

@@ -70,6 +70,8 @@ class SourcePath(
             module = null
         }
 
+        fun isTestFile(): Boolean = path?.fileName?.toString()?.endsWith("Test.kt") ?: false
+
         fun parse() {
             // TODO: Create PsiFile using the stored language instead
             parsed = cp.compiler.createKtFile(content, path ?: Paths.get("sourceFile.virtual.$extension"), kind)
@@ -118,7 +120,7 @@ class SourcePath(
                 parseIfChanged().apply { compileIfNull() }.let { doPrepareCompiledFile() }
 
         private fun doPrepareCompiledFile(): CompiledFile =
-                CompiledFile(content, compiledFile!!, compiledContext!!, module!!, allIncludingThis(), cp, isScript, kind)
+                CompiledFile(content, compiledFile!!, compiledContext!!, module!!, allIncludingThis(), cp, isScript, isTestFile(), kind)
 
         private fun allIncludingThis(): Collection<KtFile> = parseIfChanged().let {
             if (isTemporary) (all().asSequence() + sequenceOf(parsed!!)).toList()

@@ -1,5 +1,7 @@
 package org.javacs.kt.util
 
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -68,4 +70,16 @@ fun descriptorOfContainingClass(descriptor: DeclarationDescriptor): ClassDescrip
         current = current.containingDeclaration as ClassDescriptor
     }
     return current
+}
+
+fun TextRange.toRange(document: Document): Range {
+    val startLine = document.getLineNumber(startOffset)
+    val startChar = startOffset - document.getLineStartOffset(startLine)
+    val endLine = document.getLineNumber(endOffset)
+    val endChar = endOffset - document.getLineStartOffset(endLine)
+
+    return Range(
+        Position(startLine, startChar),
+        Position(endLine, endChar)
+    )
 }

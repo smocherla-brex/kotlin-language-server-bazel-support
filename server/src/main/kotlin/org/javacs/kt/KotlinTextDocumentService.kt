@@ -124,6 +124,7 @@ class KotlinTextDocumentService(
         TODO("not implemented")
     }
 
+
     override fun definition(position: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> = async.compute {
         reportTime {
             LOG.info("Go-to-definition at {}", describePosition(position))
@@ -186,6 +187,13 @@ class KotlinTextDocumentService(
         LOG.info { "Linting $uri" }
         sf.open(uri, params.textDocument.text, params.textDocument.version)
         lintNow(uri)
+
+        // notify client that linting or compiling was done
+        val documentNotification = mapOf("uri" to uri, "kind" to "end")
+        val params = ProgressParams()
+        params.token = Either.forLeft("brex/kotlinAnalysis")
+        params.value = Either.forRight(documentNotification)
+        client.notifyProgress(params)
     }
 
     override fun didSave(params: DidSaveTextDocumentParams) {
