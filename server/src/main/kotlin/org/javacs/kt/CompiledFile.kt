@@ -325,9 +325,9 @@ class CompiledFile(
 
             val describeBlocks = mutableListOf<DescribeInfo>()
 
-            ktClass?.findDescendantOfType<KtCallExpression> {
+            ktClass?.collectDescendantsOfType<KtCallExpression> {
                 it.calleeExpression?.text == "describe"
-            }?.let { describeExpr ->
+            }?.forEach { describeExpr ->
                 val describeText = describeExpr.valueArguments.firstOrNull()?.
                 getArgumentExpression()?.text?.trim('"').orEmpty()
 
