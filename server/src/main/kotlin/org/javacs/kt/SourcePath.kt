@@ -253,15 +253,11 @@ class SourcePath(
     }
 
     fun compileAllFiles() {
-        // TODO: Investigate the possibility of compiling all files at once, instead of iterating here
         // At the moment, compiling all files at once sometimes leads to an internal error from the TopDownAnalyzer
-        files.keys.forEach {
-            // If one of the files fails to compile, we compile the others anyway
-            try {
-                compileFiles(listOf(it))
-            } catch (ex: Exception) {
-                LOG.printStackTrace(ex)
-            }
+        try {
+            compileFiles(files.keys)
+        } catch (e: Exception) {
+            LOG.warn("Error while compiling files", e)
         }
     }
 
