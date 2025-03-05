@@ -155,7 +155,7 @@ class SymbolIndex(
 
                 val finished = System.currentTimeMillis()
                 val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
-                LOG.info("Updated symbol index in ${finished - started} ms! (${count} symbol(s))")
+                LOG.debug("Updated symbol index in ${finished - started} ms! (${count} symbol(s))")
             }
         } catch (e: Exception) {
             LOG.error("Error while updating symbol index")
