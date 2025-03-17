@@ -192,3 +192,15 @@ open class SingleFileTestFixture(
         languageServer.textDocumentService.debounceLint.waitForPendingTask()
     }
 }
+
+open class BazelLanguageServerTextFixture(
+    val file: String,
+    config: Configuration = Configuration()
+): LanguageServerTestFixture("brex", config) {
+    @Before fun openFile() {
+        open(file)
+
+        // Wait for lint, so subsequent replace(...) operations cause recovery
+        languageServer.textDocumentService.debounceLint.waitForPendingTask()
+    }
+}
