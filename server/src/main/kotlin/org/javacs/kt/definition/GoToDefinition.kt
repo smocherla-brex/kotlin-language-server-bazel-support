@@ -41,17 +41,18 @@ fun goToDefinition(
 
     // Try finding the location from source jars first,
     // if we don't find it, then maybe try the decompiling class file option
-    return locationFromClassPath(cp.workspaceRoots.first(), target, cp.jarMetadata, cp.compiler, tempDir)
+    val location = locationFromClassPath(cp.workspaceRoots.first(), target, cp.jarMetadata, cp.compiler, tempDir)
+    if(location == null) {
+        LOG.warn("Didn't find location for {}", target)
+    }
+    return location
 }
 
-private fun isInsideArchive(uri: String, cp: CompilerClassPath) =
-    uri.contains(".jar!") || uri.contains(".zip!") || cp.javaHome?.let {
-        Paths.get(parseURI(uri)).toString().startsWith(File(it).path)
-    } ?: false
-
-
 private fun locationFromClassPath(workspaceRoot: Path, target: DeclarationDescriptor, jarMetadata: Set<Path>, compiler: Compiler, tempDir: TemporaryDirectory): Location? {
-    if (jarMetadata.isEmpty()) return null
+    if (jarMetadata.isEmpty()) {
+        LOG.info("JAR metadata is empty, go-to will not work")
+        return null
+    }
 
     return locationForDescriptor(workspaceRoot, jarMetadata.toList(), target, compiler, tempDir)
 }
@@ -70,6 +71,9 @@ private fun locationForDescriptor(
         val classDescriptor = descriptorOfContainingClass(descriptor)
         // this only works if the symbol is contained directly in a class/object
         if (classDescriptor != null) {
+            if(!analysis.classes.containsKey(classDescriptor.fqNameSafe.asString())) {
+                LOG.warn("Goto: Couldn't find a match for {} in  {}", classDescriptor.fqNameSafe.asString(), jarEntry?.toFile())
+            }
             val sourceJar = analysis.classes[classDescriptor.fqNameSafe.asString()]?.sourceJars?.firstOrNull() ?: return null
             val packageName = descriptor.containingPackage()?.asString() ?: return null
             val className = classDescriptor.name.toString() ?: return null
@@ -77,6 +81,7 @@ private fun locationForDescriptor(
 
             return findLocation(workspaceRoot, sourceJar, packageName, className, symbolName, compiler, tempDir)
         } else {
+            LOG.info("Go-to: Symbol is not contained in class")
             // other possibilities - extension functions
             if(descriptor is DeserializedSimpleFunctionDescriptor && descriptor.extensionReceiverParameter != null) {
                 LOG.debug { "Symbol is an extension function" }

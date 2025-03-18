@@ -22,6 +22,9 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
     override val jarMetadataJsons: Set<Path> get() {
         val metadataPaths = mutableSetOf<Path>()
         val bazelOut = Paths.get(workspaceRoot.toAbsolutePath().toString(), "bazel-out")
+        if(!bazelOut.exists()) {
+            return emptySet()
+        }
         Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
             paths.filter { Files.isRegularFile(it) }
                 .forEach { path ->
@@ -31,12 +34,16 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
                 }
         }
 
+        LOG.info("Found bazel jar metadata files: {}", metadataPaths)
         return metadataPaths
     }
 
     private fun getBazelClassPathEntries(): Set<ClassPathEntry> {
         val bazelOut = Paths.get(workspaceRoot.toAbsolutePath().toString(), "bazel-out")
 
+        if(!bazelOut.exists()) {
+            return emptySet()
+        }
         // Process files in a single walk but collect separately
         val sourcePaths = mutableSetOf<Path>()
         val compilePaths = mutableSetOf<Path>()
