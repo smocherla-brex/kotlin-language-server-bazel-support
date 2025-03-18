@@ -5,5 +5,5 @@ import java.nio.file.Path
 data class ClassPathEntry(
     val compiledJar: Path,
     val sourceJar: Path? = null,
-    val jarMetadataJson: Path? = null,
+    val jarMetadataJsons: Set<Path>? = null,
 )

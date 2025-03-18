@@ -6,6 +6,7 @@ import org.hamcrest.Matchers.hasItem
 import org.javacs.kt.LOG
 import org.javacs.kt.classpath.defaultClassPathResolver
 import org.javacs.kt.testResourcesRoot
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
@@ -30,6 +31,11 @@ class ClassPathTest {
         print(resolvers)
         val classPath = resolvers.classpathOrEmpty.map { it.toString() }
 
+        // Has all the metadata.json entries
+        print(resolvers.classpath.map { it.jarMetadataJsons }.size)
+        assertEquals(resolvers.classpath.size, 67)
+
         assertThat(classPath, hasItem(containsString("accounting")))
+        assertThat(classPath, hasItem(containsString("protos")))
     }
 }

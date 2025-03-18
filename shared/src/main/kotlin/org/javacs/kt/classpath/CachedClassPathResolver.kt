@@ -22,7 +22,7 @@ private object ClassPathMetadataCache : IntIdTable() {
 private object ClassPathCacheEntry : IntIdTable() {
     val compiledJar = varchar("compiledjar", length = MAX_PATH_LENGTH)
     val sourceJar = varchar("sourcejar", length = MAX_PATH_LENGTH).nullable()
-    val jarMetadataJson = varchar("jarmetadata", length = MAX_PATH_LENGTH).nullable()
+    val jarMetadataJsons = varchar("jarmetadatas", length = MAX_PATH_LENGTH).nullable()
 }
 
 private object BuildScriptClassPathCacheEntry : IntIdTable() {
@@ -41,7 +41,7 @@ class ClassPathCacheEntryEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var compiledJar by ClassPathCacheEntry.compiledJar
     var sourceJar by ClassPathCacheEntry.sourceJar
-    var jarMetadataJson by ClassPathCacheEntry.jarMetadataJson
+    var jarMetadataJsons by ClassPathCacheEntry.jarMetadataJsons
 }
 
 class BuildScriptClassPathCacheEntryEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -63,7 +63,7 @@ internal class CachedClassPathResolver(
                 ClassPathEntry(
                     compiledJar = Paths.get(it.compiledJar),
                     sourceJar = it.sourceJar?.let(Paths::get),
-                    jarMetadataJson = it.jarMetadataJson?.let(Paths::get),
+                    jarMetadataJsons = it.jarMetadataJsons?.split(",")?.map { Paths.get(it) }?.toSet()
                 )
             }.toSet()
         }
@@ -73,7 +73,7 @@ internal class CachedClassPathResolver(
                 ClassPathCacheEntryEntity.new {
                     compiledJar = it.compiledJar.toString()
                     sourceJar = it.sourceJar?.toString()
-                    jarMetadataJson = it.jarMetadataJson?.toString()
+                    jarMetadataJsons = it.jarMetadataJsons?.map { it.toString() }?.joinToString(",")
                 }
             }
         }

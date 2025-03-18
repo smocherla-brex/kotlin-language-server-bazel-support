@@ -188,6 +188,8 @@ class KotlinTextDocumentService(
         sf.open(uri, params.textDocument.text, params.textDocument.version)
         lintNow(uri)
 
+        // TODO: comment this in code, we need to use DI and abstract this out
+        // for tests to pass
         // notify client that linting or compiling was done
         val documentNotification = mapOf("uri" to uri, "kind" to "end")
         val params = ProgressParams()

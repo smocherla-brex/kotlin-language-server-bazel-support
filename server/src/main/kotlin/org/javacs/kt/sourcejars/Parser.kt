@@ -51,12 +51,16 @@ class SourceJarParser {
 
 
             var entry = jar.getJarEntry(ktSourceFilePath)
+            var isJava = false
             if(entry == null) {
                 // if we still couldn't find it, try looking through all the entries that may match
                 // because our jar structures aren't consistent
-                entry = jar.entries().toList().filter { it.toString().endsWith(baseKtFileName) }.firstOrNull()
+                entry = jar.entries().toList().filter { it.toString().endsWith(className + ".kt") }.firstOrNull()
+                if (entry == null) {
+                    entry = jar.entries().toList().filter { it.toString().endsWith(className + ".java") }.firstOrNull()
+                    isJava = entry != null
+                }
             }
-            var isJava = false
             // if we couldn't find it, try for a Java source file as we have Java dependencies
             if (entry == null) {
                entry = jar.getJarEntry(javaSourceFilePath)
@@ -66,7 +70,7 @@ class SourceJarParser {
             return entry?.let {
                 SourceFileInfo(
                     contents = jar.getInputStream(entry).bufferedReader().readText(),
-                    pathInJar = if(isJava) javaSourceFilePath else ktSourceFilePath,
+                    pathInJar = entry.toString(),
                     isJava = isJava,
                 )
             }

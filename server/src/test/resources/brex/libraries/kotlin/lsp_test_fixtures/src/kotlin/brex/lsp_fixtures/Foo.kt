@@ -5,6 +5,7 @@ import brex.proto.spend.accounting.record.v1.services.AccountingRecordServiceGrp
 import brex.proto.spend.accounting.record.v1.services.listAccountingRecordsRequest
 import brex.proto.spend.accounting.record.v1.enums.AccountingRecordTypeOuterClass.AccountingRecordType
 import brex.lsp_fixtures.extensions.toBase64
+import javax.inject.Inject
 
 class Foo {
 

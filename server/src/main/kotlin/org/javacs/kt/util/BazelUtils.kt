@@ -1,13 +1,21 @@
 package org.javacs.kt.util
 
+import java.nio.file.Path
+
 fun isExternalJar(jarPath: String): Boolean {
     return jarPath.contains("external/")
 }
 
-fun getSourceJarPath(jarPath: String): String {
+fun isProtoJar(jarPath: String): Boolean {
+    return jarPath.contains("-speed")
+}
+
+fun getSourceJarPath(workspaceRoot: Path, jarPath: String): Path {
     if(isExternalJar(jarPath)) {
-        return jarPath.replace("header_", "").replace(".jar", "-sources.jar")
+        return workspaceRoot.resolve(jarPath.replace("header_", "").replace(".jar", "-sources.jar"))
+    } else if (isProtoJar(jarPath)) {
+        return workspaceRoot.resolve(jarPath.replace("-hjar", "-src").replace("libbrex", "brex"))
     } else {
-        return jarPath.replace(".abi.jar", "-sources.jar")
+        return workspaceRoot.resolve(jarPath.replace(".abi.jar", "-sources.jar"))
     }
 }

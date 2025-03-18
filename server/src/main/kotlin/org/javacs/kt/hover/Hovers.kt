@@ -33,7 +33,7 @@ import java.nio.file.Path
 
 fun hoverAt(file: CompiledFile, compiler: Compiler, compilerClassPath: CompilerClassPath, cursor: Int): Hover? {
     val (ref, target) = file.referenceAtPoint(cursor) ?: return typeHoverAt(file, cursor)
-    val sourceDoc = docFromSourceJars(target, compiler, compilerClassPath.classPath)
+    val sourceDoc = docFromSourceJars(compilerClassPath.workspaceRoots.first(), target, compiler, compilerClassPath.classPath)
     val javaDoc = getDocString(file, cursor)
     val doc = if(sourceDoc != null && sourceDoc.isNotEmpty()) sourceDoc else javaDoc
     val location = ref.textRange
@@ -104,11 +104,11 @@ private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext):
     return result
 }
 
-private fun docFromSourceJars(target: DeclarationDescriptor, compiler: Compiler, classPathEntries: Set<ClassPathEntry>): String? {
-    val jarMetadata = classPathEntries.mapNotNull { it.jarMetadataJson }
+private fun docFromSourceJars(workspaceRoot: Path, target: DeclarationDescriptor, compiler: Compiler, classPathEntries: Set<ClassPathEntry>): String? {
+    val jarMetadata = classPathEntries.mapNotNull { it.jarMetadataJsons }.flatten().toSet().toList()
     if (jarMetadata.isEmpty()) return null
 
-    return kDocForDescriptor(jarMetadata, target, compiler)
+    return kDocForDescriptor(workspaceRoot, jarMetadata, target, compiler)
 }
 
 private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
@@ -119,6 +119,7 @@ private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
 }
 
 private fun kDocForDescriptor(
+    workspaceRoot: Path,
     jarMetadata: List<Path?>,
     descriptor: DeclarationDescriptor,
     compiler: Compiler
@@ -135,15 +136,15 @@ private fun kDocForDescriptor(
         val className = classDescriptor?.name?.toString() ?: return null
         val symbolName = if(descriptor.isCompanionObject()) classDescriptor.name.asString().replace(".Companion", "") else descriptor.name.asString()
 
-        return findKdoc(sourceJar, packageName, className, symbolName, compiler)
+        return findKdoc(workspaceRoot, sourceJar, packageName, className, symbolName, compiler)
     }
 
     // Try each jar entry until we find a location
     return jarMetadata.firstNotNullOfOrNull { processJarEntry(it) }
 }
 
-private fun findKdoc(sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
-    val actualSourceJar = getSourceJarPath(sourceJar)
+private fun findKdoc(workspaceRoot: Path, sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
+    val actualSourceJar = getSourceJarPath(workspaceRoot, sourceJar).toAbsolutePath().toString()
     val sourceFileInfo = SourceJarParser().findSourceFileInfo(
         sourcesJarPath = actualSourceJar,
         packageName = packageName,
