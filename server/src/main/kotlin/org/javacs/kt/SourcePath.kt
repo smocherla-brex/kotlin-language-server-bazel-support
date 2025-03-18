@@ -292,6 +292,7 @@ class SourcePath(
     }
 
     fun refreshDependencyIndexes() {
+        LOG.info("Refreshing dependency indices...")
         compileAllFiles()
 
         val module = files.values.first { it.module != null }.module

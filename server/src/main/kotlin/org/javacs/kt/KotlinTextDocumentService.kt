@@ -288,6 +288,7 @@ class KotlinTextDocumentService(
 
     fun lintAll() {
         debounceLint.submitImmediately {
+            LOG.info("Linting all files...")
             sp.compileAllFiles()
             sp.saveAllFiles()
             sp.refreshDependencyIndexes()

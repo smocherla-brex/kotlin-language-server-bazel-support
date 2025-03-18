@@ -146,7 +146,7 @@ class SymbolIndex(
     // Removes a list of indexes and adds another list. Everything is done in the same transaction.
     fun updateIndexes(remove: Sequence<DeclarationDescriptor>, add: Sequence<DeclarationDescriptor>) {
         val started = System.currentTimeMillis()
-        LOG.info("Updating symbol index...")
+        LOG.debug("Updating symbol index...")
 
         try {
             transaction(db) {
