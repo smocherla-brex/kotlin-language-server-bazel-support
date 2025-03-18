@@ -19,13 +19,27 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
         LOG.info("Initializing BazelClassPathResolver at ${workspaceRoot.toAbsolutePath()}")
     }
 
+    override val jarMetadataJsons: Set<Path> get() {
+        val metadataPaths = mutableSetOf<Path>()
+        val bazelOut = Paths.get(workspaceRoot.toAbsolutePath().toString(), "bazel-out")
+        Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
+            paths.filter { Files.isRegularFile(it) }
+                .forEach { path ->
+                    when {
+                        path.fileName.toString().endsWith("klsp-metadata.json") -> metadataPaths.add(path)
+                    }
+                }
+        }
+
+        return metadataPaths
+    }
+
     private fun getBazelClassPathEntries(): Set<ClassPathEntry> {
         val bazelOut = Paths.get(workspaceRoot.toAbsolutePath().toString(), "bazel-out")
 
         // Process files in a single walk but collect separately
         val sourcePaths = mutableSetOf<Path>()
         val compilePaths = mutableSetOf<Path>()
-        val metadataPaths = mutableSetOf<Path>() // Store all metadata paths
 
         Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
             paths.filter { Files.isRegularFile(it) }
@@ -33,7 +47,6 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
                     when {
                         path.fileName.toString().endsWith("klsp-sources.txt") -> sourcePaths.add(path)
                         path.fileName.toString().endsWith("klsp-compile.txt") -> compilePaths.add(path)
-                        path.fileName.toString().endsWith("klsp-metadata.json") -> metadataPaths.add(path)
                     }
                 }
         }
@@ -53,10 +66,6 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
         val sourceJarMap = sourceJars.associateBy {
             it.removeSuffix("-sources.jar").removeSuffix("-src.jar")
         }
-
-        // Group metadata files by directory
-        val metadataByDir = metadataPaths.groupBy { it.parent }
-
         // Create final classpath entries
         val cp = compileJars.map { compileJar ->
             val normalizedCompileJar = compileJar.substringBeforeLast(".jar")
@@ -67,14 +76,10 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
                 ?.value
                 ?.let { workspaceRoot.resolve(it).toAbsolutePath() }
 
-            // Get all metadata files in the same directory as the compiled jar
-            val dirMetadataFiles = metadataByDir[compiledJarPath.parent] ?: emptyList()
-
             // Update ClassPathEntry to support multiple metadata files
             ClassPathEntry(
                 compiledJar = compiledJarPath,
                 sourceJar = sourceJar,
-                jarMetadataJsons = dirMetadataFiles.toSet()
             )
         }.toSet()
 

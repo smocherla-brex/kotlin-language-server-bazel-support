@@ -41,7 +41,7 @@ fun goToDefinition(
 
     // Try finding the location from source jars first,
     // if we don't find it, then maybe try the decompiling class file option
-    return locationFromClassPath(cp.workspaceRoots.first(), target, cp.classPath, cp.compiler, tempDir)
+    return locationFromClassPath(cp.workspaceRoots.first(), target, cp.jarMetadata, cp.compiler, tempDir)
 }
 
 private fun isInsideArchive(uri: String, cp: CompilerClassPath) =
@@ -50,11 +50,10 @@ private fun isInsideArchive(uri: String, cp: CompilerClassPath) =
     } ?: false
 
 
-private fun locationFromClassPath(workspaceRoot: Path, target: DeclarationDescriptor, classPathEntries: Set<ClassPathEntry>, compiler: Compiler, tempDir: TemporaryDirectory): Location? {
-    val jarMetadata = classPathEntries.mapNotNull { it.jarMetadataJsons }.flatten()
+private fun locationFromClassPath(workspaceRoot: Path, target: DeclarationDescriptor, jarMetadata: Set<Path>, compiler: Compiler, tempDir: TemporaryDirectory): Location? {
     if (jarMetadata.isEmpty()) return null
 
-    return locationForDescriptor(workspaceRoot, jarMetadata, target, compiler, tempDir)
+    return locationForDescriptor(workspaceRoot, jarMetadata.toList(), target, compiler, tempDir)
 }
 
 private fun locationForDescriptor(

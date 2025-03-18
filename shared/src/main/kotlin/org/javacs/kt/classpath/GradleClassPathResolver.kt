@@ -34,6 +34,8 @@ internal class GradleClassPathResolver(private val path: Path, private val inclu
         }
     }
 
+    override val jarMetadataJsons: Set<Path> = emptySet()
+
     override val currentBuildFileVersion: Long get() = path.toFile().lastModified()
 
     companion object {

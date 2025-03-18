@@ -1,6 +1,7 @@
 package org.javacs.kt.classpath
 
 import org.javacs.kt.LOG
+import org.javacs.kt.classpath.ClassPathCacheEntry.nullable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -11,6 +12,7 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 private const val MAX_PATH_LENGTH = 2047
 
@@ -22,11 +24,21 @@ private object ClassPathMetadataCache : IntIdTable() {
 private object ClassPathCacheEntry : IntIdTable() {
     val compiledJar = varchar("compiledjar", length = MAX_PATH_LENGTH)
     val sourceJar = varchar("sourcejar", length = MAX_PATH_LENGTH).nullable()
-    val jarMetadataJsons = varchar("jarmetadatas", length = MAX_PATH_LENGTH).nullable()
 }
 
 private object BuildScriptClassPathCacheEntry : IntIdTable() {
     val jar = varchar("jar", length = MAX_PATH_LENGTH)
+}
+
+
+private object JarMetadataJsonCacheEntry : IntIdTable() {
+    val metadataJson = varchar("metadataJson", length = MAX_PATH_LENGTH).nullable()
+}
+
+class JarMetadataJsonCacheEntryEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<JarMetadataJsonCacheEntryEntity>(JarMetadataJsonCacheEntry)
+
+   var metadataJson by JarMetadataJsonCacheEntry.metadataJson
 }
 
 class ClassPathMetadataCacheEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -41,7 +53,6 @@ class ClassPathCacheEntryEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var compiledJar by ClassPathCacheEntry.compiledJar
     var sourceJar by ClassPathCacheEntry.sourceJar
-    var jarMetadataJsons by ClassPathCacheEntry.jarMetadataJsons
 }
 
 class BuildScriptClassPathCacheEntryEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -57,13 +68,26 @@ internal class CachedClassPathResolver(
 ) : ClassPathResolver {
     override val resolverType: String get() = "Cached + ${wrapped.resolverType}"
 
+    private var cachedJarMetadataJsonEntries: Set<Path>
+        get() = transaction(db) {
+            JarMetadataJsonCacheEntryEntity.all().map {
+                Paths.get(it.metadataJson)
+            }.toSet()
+        }
+        set(newEntries) = transaction(db) {
+            JarMetadataJsonCacheEntry.deleteAll()
+            newEntries.map {
+                JarMetadataJsonCacheEntryEntity.new {
+                    it.absolutePathString()
+                }
+            }
+        }
     private var cachedClassPathEntries: Set<ClassPathEntry>
         get() = transaction(db) {
             ClassPathCacheEntryEntity.all().map {
                 ClassPathEntry(
                     compiledJar = Paths.get(it.compiledJar),
                     sourceJar = it.sourceJar?.let(Paths::get),
-                    jarMetadataJsons = it.jarMetadataJsons?.split(",")?.map { Paths.get(it) }?.toSet()
                 )
             }.toSet()
         }
@@ -73,7 +97,6 @@ internal class CachedClassPathResolver(
                 ClassPathCacheEntryEntity.new {
                     compiledJar = it.compiledJar.toString()
                     sourceJar = it.sourceJar?.toString()
-                    jarMetadataJsons = it.jarMetadataJsons?.map { it.toString() }?.joinToString(",")
                 }
             }
         }
@@ -106,7 +129,7 @@ internal class CachedClassPathResolver(
     init {
         transaction(db) {
             SchemaUtils.createMissingTablesAndColumns(
-                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry
+                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry, JarMetadataJsonCacheEntry
             )
         }
     }
@@ -124,6 +147,20 @@ internal class CachedClassPathResolver(
 
         return newClasspath
     }
+
+    override val jarMetadataJsons: Set<Path>  get()  {
+            cachedJarMetadataJsonEntries.let { if (!dependenciesChanged()) {
+                LOG.info("Classpath/jar metadata has not changed. Fetching from cache")
+                return it
+            } }
+
+            LOG.info("Cached jar metadata is outdated or not found. Resolving again")
+
+            val newJarMetadata = wrapped.jarMetadataJsons
+            updateJarMetadataCache(newJarMetadata)
+
+            return newJarMetadata
+        }
 
     override val buildScriptClasspath: Set<Path> get() {
         if (!dependenciesChanged()) {
@@ -159,6 +196,13 @@ internal class CachedClassPathResolver(
             ) ?: ClasspathMetadata()
         }
     }
+
+    private fun updateJarMetadataCache(newJarMetadataJsonEntries: Set<Path>) {
+        transaction(db) {
+            cachedJarMetadataJsonEntries = newJarMetadataJsonEntries
+        }
+    }
+
 
     private fun updateBuildScriptClasspathCache(newClasspath: Set<Path>) {
         transaction(db) {

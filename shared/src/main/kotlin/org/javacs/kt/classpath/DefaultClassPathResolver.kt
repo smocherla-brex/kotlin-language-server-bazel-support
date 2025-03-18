@@ -5,9 +5,8 @@ import java.nio.file.Path
 
 fun defaultClassPathResolver(workspaceRoots: Collection<Path>, db: Database? = null): ClassPathResolver {
     val childResolver = WithStdlibResolver(
-        ShellClassPathResolver.global(workspaceRoots.firstOrNull())
-            .or(BazelClassPathResolver.global(workspaceRoots.firstOrNull())
-    ).or(BackupClassPathResolver))
+        BazelClassPathResolver.global(workspaceRoots.firstOrNull())
+    )
 
     return db?.let { CachedClassPathResolver(childResolver, it) } ?: childResolver
 }

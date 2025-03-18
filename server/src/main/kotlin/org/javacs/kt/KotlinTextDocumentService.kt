@@ -191,11 +191,11 @@ class KotlinTextDocumentService(
         // TODO: comment this in code, we need to use DI and abstract this out
         // for tests to pass
         // notify client that linting or compiling was done
-        val documentNotification = mapOf("uri" to uri, "kind" to "end")
-        val params = ProgressParams()
-        params.token = Either.forLeft("brex/kotlinAnalysis")
-        params.value = Either.forRight(documentNotification)
-        client.notifyProgress(params)
+//        val documentNotification = mapOf("uri" to uri, "kind" to "end")
+//        val params = ProgressParams()
+//        params.token = Either.forLeft("brex/kotlinAnalysis")
+//        params.value = Either.forRight(documentNotification)
+//        client.notifyProgress(params)
     }
 
     override fun didSave(params: DidSaveTextDocumentParams) {

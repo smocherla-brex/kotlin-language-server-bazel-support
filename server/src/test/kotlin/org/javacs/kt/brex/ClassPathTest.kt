@@ -6,11 +6,11 @@ import org.hamcrest.Matchers.hasItem
 import org.javacs.kt.LOG
 import org.javacs.kt.classpath.defaultClassPathResolver
 import org.javacs.kt.testResourcesRoot
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
 import java.nio.file.Files
+import kotlin.io.path.absolutePathString
 
 class ClassPathTest {
     companion object {
@@ -32,10 +32,11 @@ class ClassPathTest {
         val classPath = resolvers.classpathOrEmpty.map { it.toString() }
 
         // Has all the metadata.json entries
-        print(resolvers.classpath.map { it.jarMetadataJsons }.size)
         assertEquals(resolvers.classpath.size, 67)
+        assertNotEquals(resolvers.jarMetadataJsonsOrEmpty.size, 0)
 
         assertThat(classPath, hasItem(containsString("accounting")))
         assertThat(classPath, hasItem(containsString("protos")))
+        assertThat(classPath, hasItem(containsString("external/")))
     }
 }

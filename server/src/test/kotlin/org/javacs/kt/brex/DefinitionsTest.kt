@@ -40,7 +40,6 @@ class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test
         val definitions = languageServer.textDocumentService.definition(definitionParams(file, 8, 24)).get().left
         val uris = definitions.map { it.uri }
 
-        // TODO: fix this regression
         assertThat(definitions, hasSize(1))
         assertThat(uris, hasItem(containsString(".java")))
     }

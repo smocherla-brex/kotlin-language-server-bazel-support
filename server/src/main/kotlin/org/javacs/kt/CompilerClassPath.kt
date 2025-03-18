@@ -26,6 +26,7 @@ class CompilerClassPath(
     private val javaSourcePath = mutableSetOf<Path>()
     private val buildScriptClassPath = mutableSetOf<Path>()
     val classPath = mutableSetOf<ClassPathEntry>()
+    val jarMetadata = mutableSetOf<Path>()
     val outputDirectory: File = Files.createTempDirectory("klsBuildOutput").toFile()
     val javaHome: String? = System.getProperty("java.home", null)
 
@@ -62,6 +63,13 @@ class CompilerClassPath(
                     syncPaths(classPath, newClassPath, "class path") { it.compiledJar }
                 }
                 refreshCompiler = true
+            }
+
+            val newJarMetadata = resolver.jarMetadataJsonsOrEmpty
+            if(newJarMetadata != jarMetadata) {
+                synchronized(jarMetadata) {
+                    syncPaths(jarMetadata, newJarMetadata, "jar metadata") { it }
+                }
             }
 
             async.compute {

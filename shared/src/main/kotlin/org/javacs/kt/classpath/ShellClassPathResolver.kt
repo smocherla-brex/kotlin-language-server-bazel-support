@@ -14,6 +14,8 @@ internal class ShellClassPathResolver(
     private val workingDir: Path? = null
 ) : ClassPathResolver {
     override val resolverType: String = "Shell"
+    override val jarMetadataJsons: Set<Path> = emptySet()
+
     override val classpath: Set<ClassPathEntry> get() {
         val workingDirectory = workingDir?.toFile() ?: script.toAbsolutePath().parent.toFile()
         val cmd = script.toString()

@@ -33,7 +33,7 @@ import java.nio.file.Path
 
 fun hoverAt(file: CompiledFile, compiler: Compiler, compilerClassPath: CompilerClassPath, cursor: Int): Hover? {
     val (ref, target) = file.referenceAtPoint(cursor) ?: return typeHoverAt(file, cursor)
-    val sourceDoc = docFromSourceJars(compilerClassPath.workspaceRoots.first(), target, compiler, compilerClassPath.classPath)
+    val sourceDoc = docFromSourceJars(compilerClassPath.workspaceRoots.first(), target, compiler, compilerClassPath.jarMetadata)
     val javaDoc = getDocString(file, cursor)
     val doc = if(sourceDoc != null && sourceDoc.isNotEmpty()) sourceDoc else javaDoc
     val location = ref.textRange
@@ -104,11 +104,10 @@ private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext):
     return result
 }
 
-private fun docFromSourceJars(workspaceRoot: Path, target: DeclarationDescriptor, compiler: Compiler, classPathEntries: Set<ClassPathEntry>): String? {
-    val jarMetadata = classPathEntries.mapNotNull { it.jarMetadataJsons }.flatten().toSet().toList()
+private fun docFromSourceJars(workspaceRoot: Path, target: DeclarationDescriptor, compiler: Compiler, jarMetadata: Set<Path>): String? {
     if (jarMetadata.isEmpty()) return null
 
-    return kDocForDescriptor(workspaceRoot, jarMetadata, target, compiler)
+    return kDocForDescriptor(workspaceRoot, jarMetadata.toList(), target, compiler)
 }
 
 private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {

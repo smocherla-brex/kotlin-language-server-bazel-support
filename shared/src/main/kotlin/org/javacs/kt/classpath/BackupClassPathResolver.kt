@@ -14,6 +14,7 @@ import java.nio.file.Paths
 object BackupClassPathResolver : ClassPathResolver {
     override val resolverType: String = "Backup"
     override val classpath: Set<ClassPathEntry> get() = findKotlinStdlib()?.let { setOf(it) }.orEmpty().map { ClassPathEntry(it, null) }.toSet()
+    override val jarMetadataJsons: Set<Path> get() = emptySet()
 }
 
 fun findKotlinStdlib(): Path? =
