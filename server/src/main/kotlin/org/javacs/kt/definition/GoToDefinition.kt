@@ -72,7 +72,7 @@ private fun locationForDescriptor(
         // this only works if the symbol is contained directly in a class/object
         if (classDescriptor != null) {
             if(!analysis.classes.containsKey(classDescriptor.fqNameSafe.asString())) {
-                LOG.warn("Goto: Couldn't find a match for {} in  {}", classDescriptor.fqNameSafe.asString(), jarEntry?.toFile())
+                LOG.debug("Goto: Couldn't find a match for {} in  {}", classDescriptor.fqNameSafe.asString(), jarEntry?.toFile())
             }
             val sourceJar = analysis.classes[classDescriptor.fqNameSafe.asString()]?.sourceJars?.firstOrNull() ?: return null
             val packageName = descriptor.containingPackage()?.asString() ?: return null
@@ -81,7 +81,7 @@ private fun locationForDescriptor(
 
             return findLocation(workspaceRoot, sourceJar, packageName, className, symbolName, compiler, tempDir)
         } else {
-            LOG.info("Go-to: Symbol is not contained in class")
+            LOG.debug("Go-to: Symbol is not contained in class, might not be a supported symbol")
             // other possibilities - extension functions
             if(descriptor is DeserializedSimpleFunctionDescriptor && descriptor.extensionReceiverParameter != null) {
                 LOG.debug { "Symbol is an extension function" }

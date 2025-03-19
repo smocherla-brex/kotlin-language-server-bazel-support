@@ -149,11 +149,6 @@ internal class CachedClassPathResolver(
     }
 
     override val jarMetadataJsons: Set<Path>  get()  {
-            cachedJarMetadataJsonEntries.let { if (!dependenciesChanged()) {
-                LOG.info("Classpath/jar metadata has not changed. Fetching from cache")
-                return it
-            } }
-
             LOG.info("Cached jar metadata is outdated or not found. Resolving again")
 
             val newJarMetadata = wrapped.jarMetadataJsons

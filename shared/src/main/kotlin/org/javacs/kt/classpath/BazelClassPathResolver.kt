@@ -99,6 +99,7 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
             if(workspaceRoot.resolve("bazel-out/volatile-status.txt").exists()) {
                 return Files.readAllLines(workspaceRoot.resolve("bazel-out/volatile-status.txt")).first().split(" ").last().toLong()
             } else {
+                LOG.warn("volatile-status.txt doesn't exist, cache maybe stale...")
                 return 0
             }
         }
