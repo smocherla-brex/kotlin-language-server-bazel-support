@@ -5,6 +5,7 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.Language
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
+import org.javacs.kt.proto.LspInfoExtractor
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.filePath
 import org.javacs.kt.util.partitionAroundLast
@@ -184,16 +185,20 @@ class SourceFiles(
     }
 
     private fun findSourceFiles(root: Path): Set<URI> {
-        val bazelBin = root.resolve("bazel-bin")
-        if(!Files.exists(bazelBin)) {
+        val bazelOut = root.resolve("bazel-out")
+        if(!Files.exists(bazelOut)) {
             return emptySet()
         }
-        return Files.walk(bazelBin, FileVisitOption.FOLLOW_LINKS).use { paths ->
-            paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("klsp-srcs.txt") }
-                .map { path: Path -> Files.readAllLines(path)
-                    .map { root.resolve(it).toAbsolutePath().toUri() } }
+        // TODO: we walk bazel-out here again to collect the files emitted by the aspect
+        // this is redundant as we also do it in classpath resolver, so it might be worth unifying the logic
+        // to reduce filesystem calls
+        return Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
+            paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("kotlin-lsp.json") }
+                .map { path: Path -> LspInfoExtractor.fromJson(path) }
+                .map { it.sourceFilesList }
                 .collect(Collectors.toList())
                 .flatten()
+                .map { Paths.get(it.path).toUri() }
                 .toSet()
         }
     }

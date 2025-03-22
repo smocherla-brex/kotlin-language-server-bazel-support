@@ -5,6 +5,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import org.javacs.kt.LOG
+import org.javacs.kt.proto.LspInfoExtractor
 import java.nio.file.FileVisitOption
 
 internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPathResolver
@@ -44,52 +45,30 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
         if(!bazelOut.exists()) {
             return emptySet()
         }
-        // Process files in a single walk but collect separately
-        val sourcePaths = mutableSetOf<Path>()
-        val compilePaths = mutableSetOf<Path>()
+        // Process
+        val lspInfos = mutableSetOf<Path>()
+        val cp = mutableSetOf<ClassPathEntry>()
 
         Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
             paths.filter { Files.isRegularFile(it) }
                 .forEach { path ->
                     when {
-                        path.fileName.toString().endsWith("klsp-sources.txt") -> sourcePaths.add(path)
-                        path.fileName.toString().endsWith("klsp-compile.txt") -> compilePaths.add(path)
+                        path.fileName.toString().endsWith("-kotlin-lsp.json") -> lspInfos.add(path)
                     }
                 }
         }
-
-        // Process source jars
-        val sourceJars = sourcePaths
-            .flatMap { Files.readAllLines(it) }
-            .filter { it.endsWith("sources.jar") || it.endsWith("src.jar") }
-            .toSet()
-
-        // Process compile jars
-        val compileJars = compilePaths
-            .flatMap { Files.readAllLines(it) }
-            .toSet()
-
-        // Create lookup map for source jars
-        val sourceJarMap = sourceJars.associateBy {
-            it.removeSuffix("-sources.jar").removeSuffix("-src.jar")
+        val targetInfos = lspInfos.map {
+            LspInfoExtractor.fromJson(it)
         }
-        // Create final classpath entries
-        val cp = compileJars.map { compileJar ->
-            val normalizedCompileJar = compileJar.substringBeforeLast(".jar")
-            val compiledJarPath = workspaceRoot.resolve(compileJar).toAbsolutePath()
+        targetInfos.forEach {
+            it.classpathList.forEach { entry ->
+                cp.add(ClassPathEntry(
+                    compiledJar = Paths.get(entry.compileJar),
+                    sourceJar = Paths.get(entry.sourceJar),
+                ))
+            }
 
-            val sourceJar = sourceJarMap.entries
-                .firstOrNull { normalizedCompileJar.contains(it.key) }
-                ?.value
-                ?.let { workspaceRoot.resolve(it).toAbsolutePath() }
-
-            // Update ClassPathEntry to support multiple metadata files
-            ClassPathEntry(
-                compiledJar = compiledJarPath,
-                sourceJar = sourceJar,
-            )
-        }.toSet()
-
+        }
         return cp
     }
 

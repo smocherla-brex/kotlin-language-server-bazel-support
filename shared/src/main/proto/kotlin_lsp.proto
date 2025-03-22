@@ -1,0 +1,38 @@
+syntax="proto3";
+
+option java_package = "brex.lsp.proto";
+
+// Encapsulates the information about the artifacts for a bazel target required by the Kotlin LSP from a bazel build
+message KotlinLspBazelTargetInfo {
+    // If bzlmod is enabled or workspce is to be used
+    bool bzlmod_enabled = 1;
+
+
+    // The bazel target label
+    string bazel_target = 2;
+
+
+    // One or more classpath entries, this only includes the direct compile/source jar for the target
+    // and not all its transitive dependencies. this is to avoid bloating this proto file
+    repeated ClassPathEntry classpath = 3;
+
+    // A list of source files that the LSP will track for compilation
+    repeated SourceFile source_files = 4;
+}
+
+message SourceFile {
+    // relative path to the source file contained in a target
+    string path = 1;
+}
+
+message ClassPathEntry {
+    // The path to the compile jar relative to the workspace
+    // These are set as optional because we can't always find a 1:1 mapping between compile and source jars
+    // for a given target, so we try to capture the mapping best as we can but it's not always possible, so there
+    // might be entries where a source jar is available and a compile jar is not, and vice versa.
+    optional string compile_jar = 1;
+
+    // The path to the source jar relative to the workspace
+    optional string source_jar = 2;
+}
+
