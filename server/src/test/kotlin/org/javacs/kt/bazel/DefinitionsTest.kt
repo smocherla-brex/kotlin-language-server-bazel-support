@@ -1,12 +1,15 @@
 package org.javacs.kt.bazel
 
+import org.eclipse.lsp4j.Position
+import org.eclipse.lsp4j.Range
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.javacs.kt.BazelLanguageServerTextFixture
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 
-class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test_fixtures/src/kotlin/brex/lsp_fixtures/Foo.kt") {
+class SourceJarDefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test_fixtures/src/kotlin/brex/lsp_fixtures/Foo.kt") {
 
     @Test
     @Ignore("Extension functions are not supported yet")
@@ -15,7 +18,7 @@ class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test
         val uris = definitions.map { it.uri }
 
         assertThat(definitions, hasSize(1))
-        assertThat(uris, hasItem(containsString("file:///Users/smocherla/src/kotlin-language-server/server/build/resources/test/brex/libraries/kotlin/lsp_test_fixtures/src/kotlin/brex/lsp_fixtures/Extensions.kt")))
+        assertThat(uris, hasItem(containsString("Extensions.kt")))
     }
 
     @Test
@@ -45,5 +48,68 @@ class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test
 
         assertThat(definitions, hasSize(1))
         assertThat(uris, hasItem(containsString(".java")))
+    }
+}
+
+
+class DefinitionTest : BazelLanguageServerTextFixture("definition/GoFrom.kt") {
+
+    @Before fun `open GoFrom`() {
+        open(file)
+    }
+
+    @Test
+    fun `go to a definition in the same file`() {
+        val definitions = languageServer.textDocumentService.definition(definitionParams(file, 3, 24)).get().left
+        val uris = definitions.map { it.uri }
+
+        assertThat(definitions, hasSize(1))
+        assertThat(uris, hasItem(containsString("GoFrom.kt")))
+    }
+}
+
+
+class GoToDefinitionOfPropertiesTest : BazelLanguageServerTextFixture("definition/GoToProperties.kt") {
+
+    @Test
+    fun `go to definition of object property`() {
+        assertGoToProperty(
+            of = position(15, 20),
+            expect = range(4, 15, 4, 32)
+        )
+    }
+
+    @Test
+    fun `go to definition of top level property`() {
+        assertGoToProperty(
+            of = position(17, 20),
+            expect = range(11, 11, 11, 23)
+        )
+    }
+
+    @Test
+    fun `go to definition of class level property`() {
+        assertGoToProperty(
+            of = position(16, 20),
+            expect = range(8, 9, 8, 25)
+        )
+    }
+
+    @Test
+    fun `go to definition of local property`() {
+        assertGoToProperty(
+            of = position(18, 18),
+            expect = range(14, 9, 14, 20)
+        )
+    }
+
+    private fun assertGoToProperty(of: Position, expect: Range) {
+        val definitions = languageServer.textDocumentService.definition(definitionParams(file, of)).get().left
+        val uris = definitions.map { it.uri }
+        val ranges = definitions.map { it.range }
+
+        assertThat(definitions, hasSize(1))
+        assertThat(uris, hasItem(containsString(file)))
+        assertThat(ranges, hasItem(equalTo(expect)))
     }
 }

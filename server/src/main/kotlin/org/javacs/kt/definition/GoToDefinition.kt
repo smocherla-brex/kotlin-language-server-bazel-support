@@ -5,19 +5,17 @@ import java.nio.file.Path
 import org.javacs.kt.CompiledFile
 import org.javacs.kt.CompilerClassPath
 import org.javacs.kt.LOG
-import org.javacs.kt.ExternalSourcesConfiguration
 import org.javacs.kt.classpath.PackageSourceMapping
-import org.javacs.kt.externalsources.ClassContentProvider
-import org.javacs.kt.externalsources.KlsURI
 import org.javacs.kt.sourcejars.SourceJarParser
 import org.jetbrains.kotlin.descriptors.*
 import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.sourcejars.SourceFileInfo
 import org.javacs.kt.util.*
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import java.nio.file.Files
 import kotlin.io.path.absolutePathString
+import org.javacs.kt.position.location
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import kotlin.io.path.writeText
 
 
@@ -29,14 +27,22 @@ fun goToDefinition(
 ): Location? {
     val (_, target) = file.referenceExpressionAtPoint(cursor) ?: return null
 
-
     LOG.info("Found declaration descriptor {}", target)
 
     // Try finding the location from source jars first,
-    // if we don't find it, then maybe try the decompiling class file option
+    // if we don't find it, then try looking through the PSI
     val location = locationFromClassPath(cp.workspaceRoots.first(), target, cp.packageSourceMappings, cp.compiler, tempDir)
     if(location == null) {
-        LOG.warn("Didn't find location for {}", target)
+        LOG.warn("Didn't find location for {} through source jars", target)
+        val psi = target.findPsi()
+        var destination = location(target)
+
+        if (psi is KtNamedDeclaration) {
+            destination = psi.nameIdentifier?.let(::location) ?: destination
+        }
+        if(destination != null) {
+            return destination
+        }
     }
     return location
 }
