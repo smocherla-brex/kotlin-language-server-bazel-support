@@ -1,9 +1,7 @@
 package org.javacs.kt.sourcejars
 
-import org.javacs.kt.util.isExternalJar
 import java.io.File
 import java.util.jar.JarFile
-
 
 
 data class SourceFileInfo(

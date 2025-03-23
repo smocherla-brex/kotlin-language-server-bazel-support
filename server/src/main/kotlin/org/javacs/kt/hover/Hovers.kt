@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.javacs.kt.CompiledFile
 import org.javacs.kt.CompilerClassPath
-import org.javacs.kt.classpath.ClassPathEntry
 import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.completion.DECL_RENDERER
@@ -24,17 +23,15 @@ import org.javacs.kt.util.findParent
 import org.javacs.kt.signaturehelp.getDocString
 import org.javacs.kt.sourcejars.SourceJarParser
 import org.javacs.kt.util.descriptorOfContainingClass
-import org.javacs.kt.util.getSourceJarPath
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isCompanionObject
 import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
-import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 fun hoverAt(file: CompiledFile, compiler: Compiler, compilerClassPath: CompilerClassPath, cursor: Int): Hover? {
     val (ref, target) = file.referenceAtPoint(cursor) ?: return typeHoverAt(file, cursor)
-    val sourceDoc = docFromSourceJars(compilerClassPath.workspaceRoots.first(), target, compiler, compilerClassPath.packageSourceMappings)
+    val sourceDoc = docFromSourceJars(target, compiler, compilerClassPath.packageSourceMappings)
     val javaDoc = getDocString(file, cursor)
     val doc = if(sourceDoc != null && sourceDoc.isNotEmpty()) sourceDoc else javaDoc
     val location = ref.textRange
@@ -105,10 +102,10 @@ private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext):
     return result
 }
 
-private fun docFromSourceJars(workspaceRoot: Path, target: DeclarationDescriptor, compiler: Compiler, packageSourceMappings: Set<PackageSourceMapping>): String? {
+private fun docFromSourceJars(target: DeclarationDescriptor, compiler: Compiler, packageSourceMappings: Set<PackageSourceMapping>): String? {
     if (packageSourceMappings.isEmpty()) return null
 
-    return kDocForDescriptor(workspaceRoot, packageSourceMappings, target, compiler)
+    return kDocForDescriptor(packageSourceMappings, target, compiler)
 }
 
 private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
@@ -119,7 +116,6 @@ private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
 }
 
 private fun kDocForDescriptor(
-    workspaceRoot: Path,
     packageSourceMappings: Set<PackageSourceMapping>,
     descriptor: DeclarationDescriptor,
     compiler: Compiler
@@ -127,23 +123,21 @@ private fun kDocForDescriptor(
 
     fun processSourceJar(mapping: PackageSourceMapping): String? {
         val classDescriptor = descriptorOfContainingClass(descriptor)
-        val descriptorFqName = descriptorFqNameForClass(classDescriptor)
         val packageName = descriptor.containingPackage()?.asString() ?: return null
         val className = classDescriptor?.name?.toString() ?: return null
         val symbolName = if(descriptor.isCompanionObject()) classDescriptor.name.asString().replace(".Companion", "") else descriptor.name.asString()
         val sourceJar = mapping.sourceJar
 
-        return findKdoc(workspaceRoot, sourceJar.absolutePathString(), packageName, className, symbolName, compiler)
+        return findKdoc(sourceJar.absolutePathString(), packageName, className, symbolName, compiler)
     }
 
     val possibleMappings = packageSourceMappings.filter { it.sourcePackage == descriptor.containingPackage()?.asString() }
     return possibleMappings.firstNotNullOfOrNull { processSourceJar(it) }
 }
 
-private fun findKdoc(workspaceRoot: Path, sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
-    val actualSourceJar = getSourceJarPath(workspaceRoot, sourceJar).toAbsolutePath().toString()
+private fun findKdoc(sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
     val sourceFileInfo = SourceJarParser.findSourceFileInfo(
-        sourcesJarPath = actualSourceJar,
+        sourcesJarPath = sourceJar,
         packageName = packageName,
         className = className
     ) ?: return null
