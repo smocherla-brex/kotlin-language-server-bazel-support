@@ -6,7 +6,7 @@ import java.nio.file.Path
 internal class WithStdlibResolver(private val wrapped: ClassPathResolver) : ClassPathResolver {
     override val resolverType: String get() = "Stdlib + ${wrapped.resolverType}"
     override val classpath: Set<ClassPathEntry> get() = wrapWithStdlibEntries(wrapped.classpath)
-    override val jarMetadataJsons: Set<Path> get() = wrapped.jarMetadataJsonsOrEmpty
+    override val packageSourceJarMappings: Set<PackageSourceMapping> get() = wrapped.packageSourceJarsMappingOrEmpty
     override val classpathOrEmpty: Set<ClassPathEntry> get() = wrapWithStdlibEntries(wrapped.classpathOrEmpty)
     override val buildScriptClasspath: Set<Path> get() = wrapWithStdlib(wrapped.buildScriptClasspath)
     override val buildScriptClasspathOrEmpty: Set<Path> get() = wrapWithStdlib(wrapped.buildScriptClasspathOrEmpty)

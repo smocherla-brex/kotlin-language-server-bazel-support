@@ -1,7 +1,6 @@
 package org.javacs.kt.classpath
 
 import org.javacs.kt.LOG
-import org.javacs.kt.classpath.ClassPathCacheEntry.nullable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -31,14 +30,16 @@ private object BuildScriptClassPathCacheEntry : IntIdTable() {
 }
 
 
-private object JarMetadataJsonCacheEntry : IntIdTable() {
-    val metadataJson = varchar("metadataJson", length = MAX_PATH_LENGTH).nullable()
+private object PackageSourceJarMappingEntry : IntIdTable() {
+    val packageName = varchar("packageName", length = MAX_PATH_LENGTH)
+    val sourceJarPath = varchar("sourceJar", length = MAX_PATH_LENGTH)
 }
 
-class JarMetadataJsonCacheEntryEntity(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<JarMetadataJsonCacheEntryEntity>(JarMetadataJsonCacheEntry)
+class PackageSourceMappingEntryEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<PackageSourceMappingEntryEntity>(PackageSourceJarMappingEntry)
 
-   var metadataJson by JarMetadataJsonCacheEntry.metadataJson
+   var packageName by PackageSourceJarMappingEntry.packageName
+   var sourceJarPath by PackageSourceJarMappingEntry.sourceJarPath
 }
 
 class ClassPathMetadataCacheEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -68,17 +69,21 @@ internal class CachedClassPathResolver(
 ) : ClassPathResolver {
     override val resolverType: String get() = "Cached + ${wrapped.resolverType}"
 
-    private var cachedJarMetadataJsonEntries: Set<Path>
+    private var cachedPackageSourceMappingEntries: Set<PackageSourceMapping>
         get() = transaction(db) {
-            JarMetadataJsonCacheEntryEntity.all().map {
-                Paths.get(it.metadataJson)
+            PackageSourceMappingEntryEntity.all().map {
+                PackageSourceMapping(
+                    sourcePackage = it.packageName,
+                    sourceJar = Paths.get(it.sourceJarPath)
+                )
             }.toSet()
         }
         set(newEntries) = transaction(db) {
-            JarMetadataJsonCacheEntry.deleteAll()
+            PackageSourceJarMappingEntry.deleteAll()
             newEntries.map {
-                JarMetadataJsonCacheEntryEntity.new {
-                    it.absolutePathString()
+                PackageSourceMappingEntryEntity.new {
+                    sourceJarPath = it.sourceJar.absolutePathString()
+                    packageName = it.sourcePackage
                 }
             }
         }
@@ -129,7 +134,7 @@ internal class CachedClassPathResolver(
     init {
         transaction(db) {
             SchemaUtils.createMissingTablesAndColumns(
-                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry, JarMetadataJsonCacheEntry
+                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry, PackageSourceJarMappingEntry
             )
         }
     }
@@ -148,13 +153,13 @@ internal class CachedClassPathResolver(
         return newClasspath
     }
 
-    override val jarMetadataJsons: Set<Path>  get()  {
+    override val packageSourceJarMappings: Set<PackageSourceMapping>  get()  {
             LOG.info("Cached jar metadata is outdated or not found. Resolving again")
 
-            val newJarMetadata = wrapped.jarMetadataJsons
-            updateJarMetadataCache(newJarMetadata)
+            val newMappings = wrapped.packageSourceJarMappings
+            updatePackageSourceMappings(newMappings)
 
-            return newJarMetadata
+            return newMappings
         }
 
     override val buildScriptClasspath: Set<Path> get() {
@@ -192,9 +197,9 @@ internal class CachedClassPathResolver(
         }
     }
 
-    private fun updateJarMetadataCache(newJarMetadataJsonEntries: Set<Path>) {
+    private fun updatePackageSourceMappings(newPackageSourceMappings: Set<PackageSourceMapping>) {
         transaction(db) {
-            cachedJarMetadataJsonEntries = newJarMetadataJsonEntries
+            cachedPackageSourceMappingEntries = newPackageSourceMappings
         }
     }
 

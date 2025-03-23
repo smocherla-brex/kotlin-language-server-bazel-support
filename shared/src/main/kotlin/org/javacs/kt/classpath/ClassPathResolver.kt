@@ -27,14 +27,14 @@ interface ClassPathResolver {
             emptySet<Path>()
         }
 
-    val jarMetadataJsons: Set<Path>
+    val packageSourceJarMappings: Set<PackageSourceMapping>
 
-    val jarMetadataJsonsOrEmpty: Set<Path>
+    val packageSourceJarsMappingOrEmpty: Set<PackageSourceMapping>
         get() = try {
-            jarMetadataJsons
+            packageSourceJarMappings
         } catch (e: Exception) {
-            LOG.warn("Could not resolve jar metadata using {}: {}", resolverType, e.message)
-            emptySet<Path>()
+            LOG.warn("Could not resolve package->source jar mapping using {}: {}", resolverType, e.message)
+            emptySet<PackageSourceMapping>()
         }
 
     val classpathWithSources: Set<ClassPathEntry> get() = classpath
@@ -54,7 +54,7 @@ interface ClassPathResolver {
         val empty = object : ClassPathResolver {
             override val resolverType = "[]"
             override val classpath = emptySet<ClassPathEntry>()
-            override val jarMetadataJsons = emptySet<Path>()
+            override val packageSourceJarMappings = emptySet<PackageSourceMapping>()
         }
     }
 }
@@ -78,7 +78,7 @@ internal class UnionClassPathResolver(val lhs: ClassPathResolver, val rhs: Class
     override val buildScriptClasspathOrEmpty get() = lhs.buildScriptClasspathOrEmpty + rhs.buildScriptClasspathOrEmpty
     override val classpathWithSources get() = lhs.classpathWithSources + rhs.classpathWithSources
     override val currentBuildFileVersion: Long get() = max(lhs.currentBuildFileVersion, rhs.currentBuildFileVersion)
-    override val jarMetadataJsons: Set<Path> = lhs.jarMetadataJsonsOrEmpty + rhs.jarMetadataJsonsOrEmpty
+    override val packageSourceJarMappings: Set<PackageSourceMapping> = lhs.packageSourceJarMappings + rhs.packageSourceJarsMappingOrEmpty
 }
 
 internal class FirstNonEmptyClassPathResolver(val lhs: ClassPathResolver, val rhs: ClassPathResolver) : ClassPathResolver {
@@ -90,6 +90,6 @@ internal class FirstNonEmptyClassPathResolver(val lhs: ClassPathResolver, val rh
     override val classpathWithSources get() = lhs.classpathWithSources.takeIf {
         it.isNotEmpty()
     } ?: rhs.classpathWithSources
-    override val jarMetadataJsons: Set<Path> = lhs.jarMetadataJsonsOrEmpty.takeIf { it.isNotEmpty() } ?: rhs.jarMetadataJsonsOrEmpty
+    override val packageSourceJarMappings: Set<PackageSourceMapping> = lhs.packageSourceJarMappings.takeIf { it.isNotEmpty() } ?: rhs.packageSourceJarsMappingOrEmpty
     override val currentBuildFileVersion: Long get() = max(lhs.currentBuildFileVersion, rhs.currentBuildFileVersion)
 }

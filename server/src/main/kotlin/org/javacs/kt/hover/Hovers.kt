@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.javacs.kt.CompiledFile
 import org.javacs.kt.CompilerClassPath
 import org.javacs.kt.classpath.ClassPathEntry
-import org.javacs.kt.classpath.JarMetadata
+import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.completion.DECL_RENDERER
 import org.javacs.kt.position.position
@@ -30,10 +30,11 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isCompanionObject
 import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 fun hoverAt(file: CompiledFile, compiler: Compiler, compilerClassPath: CompilerClassPath, cursor: Int): Hover? {
     val (ref, target) = file.referenceAtPoint(cursor) ?: return typeHoverAt(file, cursor)
-    val sourceDoc = docFromSourceJars(compilerClassPath.workspaceRoots.first(), target, compiler, compilerClassPath.jarMetadata)
+    val sourceDoc = docFromSourceJars(compilerClassPath.workspaceRoots.first(), target, compiler, compilerClassPath.packageSourceMappings)
     val javaDoc = getDocString(file, cursor)
     val doc = if(sourceDoc != null && sourceDoc.isNotEmpty()) sourceDoc else javaDoc
     val location = ref.textRange
@@ -104,10 +105,10 @@ private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext):
     return result
 }
 
-private fun docFromSourceJars(workspaceRoot: Path, target: DeclarationDescriptor, compiler: Compiler, jarMetadata: Set<Path>): String? {
-    if (jarMetadata.isEmpty()) return null
+private fun docFromSourceJars(workspaceRoot: Path, target: DeclarationDescriptor, compiler: Compiler, packageSourceMappings: Set<PackageSourceMapping>): String? {
+    if (packageSourceMappings.isEmpty()) return null
 
-    return kDocForDescriptor(workspaceRoot, jarMetadata.toList(), target, compiler)
+    return kDocForDescriptor(workspaceRoot, packageSourceMappings, target, compiler)
 }
 
 private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
@@ -119,27 +120,24 @@ private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String? {
 
 private fun kDocForDescriptor(
     workspaceRoot: Path,
-    jarMetadata: List<Path?>,
+    packageSourceMappings: Set<PackageSourceMapping>,
     descriptor: DeclarationDescriptor,
     compiler: Compiler
 ): String? {
 
-    // Helper function to process a single jar entry
-    // TODO: this is also duplicated in goto, so consolidate with a refactor
-    fun processJarEntry(jarEntry: Path?): String? {
-        val analysis = JarMetadata.fromMetadataJsonFile(jarEntry?.toFile()) ?: return null
+    fun processSourceJar(mapping: PackageSourceMapping): String? {
         val classDescriptor = descriptorOfContainingClass(descriptor)
         val descriptorFqName = descriptorFqNameForClass(classDescriptor)
-        val sourceJar = analysis.classes[descriptorFqName]?.sourceJars?.firstOrNull() ?: return null
         val packageName = descriptor.containingPackage()?.asString() ?: return null
         val className = classDescriptor?.name?.toString() ?: return null
         val symbolName = if(descriptor.isCompanionObject()) classDescriptor.name.asString().replace(".Companion", "") else descriptor.name.asString()
+        val sourceJar = mapping.sourceJar
 
-        return findKdoc(workspaceRoot, sourceJar, packageName, className, symbolName, compiler)
+        return findKdoc(workspaceRoot, sourceJar.absolutePathString(), packageName, className, symbolName, compiler)
     }
 
-    // Try each jar entry until we find a location
-    return jarMetadata.firstNotNullOfOrNull { processJarEntry(it) }
+    val possibleMappings = packageSourceMappings.filter { it.sourcePackage == descriptor.containingPackage()?.asString() }
+    return possibleMappings.firstNotNullOfOrNull { processSourceJar(it) }
 }
 
 private fun findKdoc(workspaceRoot: Path, sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {

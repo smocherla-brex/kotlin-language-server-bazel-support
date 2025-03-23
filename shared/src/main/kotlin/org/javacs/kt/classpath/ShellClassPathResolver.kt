@@ -14,7 +14,8 @@ internal class ShellClassPathResolver(
     private val workingDir: Path? = null
 ) : ClassPathResolver {
     override val resolverType: String = "Shell"
-    override val jarMetadataJsons: Set<Path> = emptySet()
+    override val packageSourceJarMappings: Set<PackageSourceMapping>
+        get() = TODO("Not yet implemented")
 
     override val classpath: Set<ClassPathEntry> get() {
         val workingDirectory = workingDir?.toFile() ?: script.toAbsolutePath().parent.toFile()

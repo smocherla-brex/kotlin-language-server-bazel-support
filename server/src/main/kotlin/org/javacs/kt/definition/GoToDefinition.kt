@@ -1,14 +1,12 @@
 package org.javacs.kt.definition
 
 import org.eclipse.lsp4j.Location
-import org.eclipse.lsp4j.Range
 import java.nio.file.Path
 import org.javacs.kt.CompiledFile
 import org.javacs.kt.CompilerClassPath
 import org.javacs.kt.LOG
 import org.javacs.kt.ExternalSourcesConfiguration
-import org.javacs.kt.classpath.ClassPathEntry
-import org.javacs.kt.classpath.JarMetadata
+import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.externalsources.ClassContentProvider
 import org.javacs.kt.externalsources.KlsURI
 import org.javacs.kt.sourcejars.SourceJarParser
@@ -18,13 +16,10 @@ import org.javacs.kt.sourcejars.SourceFileInfo
 import org.javacs.kt.util.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
-import java.io.File
 import java.nio.file.Files
-import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.writeText
 
-private val cachedTempFiles = mutableMapOf<KlsURI, Path>()
-private val definitionPattern = Regex("(?:class|interface|object|fun)\\s+(\\w+)")
 
 fun goToDefinition(
     file: CompiledFile,
@@ -41,78 +36,47 @@ fun goToDefinition(
 
     // Try finding the location from source jars first,
     // if we don't find it, then maybe try the decompiling class file option
-    val location = locationFromClassPath(cp.workspaceRoots.first(), target, cp.jarMetadata, cp.compiler, tempDir)
+    val location = locationFromClassPath(cp.workspaceRoots.first(), target, cp.packageSourceMappings, cp.compiler, tempDir)
     if(location == null) {
         LOG.warn("Didn't find location for {}", target)
     }
     return location
 }
 
-private fun locationFromClassPath(workspaceRoot: Path, target: DeclarationDescriptor, jarMetadata: Set<Path>, compiler: Compiler, tempDir: TemporaryDirectory): Location? {
-    if (jarMetadata.isEmpty()) {
-        LOG.info("JAR metadata is empty, go-to will not work")
+private fun locationFromClassPath(workspaceRoot: Path, target: DeclarationDescriptor, packageSourceMappings: Set<PackageSourceMapping>, compiler: Compiler, tempDir: TemporaryDirectory): Location? {
+    if (packageSourceMappings.isEmpty()) {
+        LOG.info("Package source mappings is empty, go-to will not work")
         return null
     }
 
-    return locationForDescriptor(workspaceRoot, jarMetadata.toList(), target, compiler, tempDir)
+    return locationForDescriptor(workspaceRoot, packageSourceMappings, target, compiler, tempDir)
 }
 
 private fun locationForDescriptor(
     workspaceRoot: Path,
-    jarMetadata: List<Path?>,
+    packageSourceMappings: Set<PackageSourceMapping>,
     descriptor: DeclarationDescriptor,
     compiler: Compiler,
     tempDir: TemporaryDirectory
 ): Location? {
 
     // Helper function to process a single jar entry
-    fun processJarEntry(jarEntry: Path?): Location? {
-        val analysis = JarMetadata.fromMetadataJsonFile(jarEntry?.toFile()) ?: return null
+    fun processJarEntry(packageSourceMapping: PackageSourceMapping): Location? {
         val classDescriptor = descriptorOfContainingClass(descriptor)
         // this only works if the symbol is contained directly in a class/object
         if (classDescriptor != null) {
-            if(!analysis.classes.containsKey(classDescriptor.fqNameSafe.asString())) {
-                LOG.debug("Goto: Couldn't find a match for {} in  {}", classDescriptor.fqNameSafe.asString(), jarEntry?.toFile())
-            }
-            val sourceJar = analysis.classes[classDescriptor.fqNameSafe.asString()]?.sourceJars?.firstOrNull() ?: return null
-            val packageName = descriptor.containingPackage()?.asString() ?: return null
+            val packageName = descriptor.containingPackage().toString()
             val className = classDescriptor.name.toString() ?: return null
             val symbolName = descriptor.name.asString()
-
+            val sourceJar = packageSourceMapping.sourceJar.absolutePathString()
             return findLocation(workspaceRoot, sourceJar, packageName, className, symbolName, compiler, tempDir)
-        } else {
-            LOG.debug("Go-to: Symbol is not contained in class, might not be a supported symbol")
-            // other possibilities - extension functions
-            if(descriptor is DeserializedSimpleFunctionDescriptor && descriptor.extensionReceiverParameter != null) {
-                LOG.debug { "Symbol is an extension function" }
-                val packageName = descriptor.containingDeclaration.fqNameSafe.asString()
-
-                val possibleMatches = analysis.classes.keys.filter { it.startsWith(packageName) }
-                possibleMatches.forEach {
-                    val analysisInfo = analysis.classes[it]
-                    analysisInfo?.sourceJars?.firstOrNull()?.let { sourceJar ->
-                        return findLocation(workspaceRoot, sourceJar, packageName, analysisInfo.name.removeSuffix("Kt"), descriptor.name.asString(), compiler, tempDir)
-                    }
-                }
-            } else if(descriptor is DeserializedSimpleFunctionDescriptor && descriptor.isInline) {
-                LOG.info { "Symbol is an inline function" }
-                val packageName = descriptor.containingDeclaration.fqNameSafe.asString()
-
-                val possibleMatches = analysis.classes.keys.filter { it.startsWith(packageName) }
-                possibleMatches.forEach {
-                    val analysisInfo = analysis.classes[it]
-                    analysisInfo?.sourceJars?.firstOrNull()?.let { sourceJar ->
-                        return findLocation(workspaceRoot, sourceJar, packageName, analysisInfo.name.removeSuffix("Kt"), descriptor.name.asString(), compiler, tempDir)
-                    }
-                }
-            }
         }
         return null
-
     }
 
-    // Try each jar entry until we find a location
-    return jarMetadata.firstNotNullOfOrNull { processJarEntry(it) }
+    // Try source jars that match the mappings we detrmined
+    val possibleSourceMappings = packageSourceMappings.filter { it.sourcePackage == descriptor.containingPackage().toString() }
+    return possibleSourceMappings.firstNotNullOfOrNull { processJarEntry(it) }
 }
 
 private fun findLocation(
@@ -124,9 +88,8 @@ private fun findLocation(
     compiler: Compiler,
     tempDir: TemporaryDirectory
 ): Location? {
-    val actualSourceJar = getSourceJarPath(workspaceRoot, sourceJar).toAbsolutePath().toString()
     val sourceFileInfo = SourceJarParser().findSourceFileInfo(
-        sourcesJarPath = actualSourceJar,
+        sourcesJarPath = sourceJar,
         packageName = packageName,
         className = className
     ) ?: return null
@@ -139,7 +102,7 @@ private fun findLocation(
     return when {
         isProtoJar(sourceJar) -> {
             Location(
-                getSourceFilePathInJar(actualSourceJar, sourceFileInfo, tempDir),
+                getSourceFilePathInJar(sourceJar, sourceFileInfo, tempDir),
                 range
             )
         }
@@ -150,7 +113,7 @@ private fun findLocation(
         }
 
         else -> Location(
-            getSourceFilePathInJar(actualSourceJar, sourceFileInfo, tempDir),
+            getSourceFilePathInJar(sourceJar, sourceFileInfo, tempDir),
             range
         )
     }

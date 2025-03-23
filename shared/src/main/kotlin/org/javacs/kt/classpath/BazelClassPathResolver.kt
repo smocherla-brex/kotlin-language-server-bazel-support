@@ -20,8 +20,9 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
         LOG.info("Initializing BazelClassPathResolver at ${workspaceRoot.toAbsolutePath()}")
     }
 
-    override val jarMetadataJsons: Set<Path> get() {
-        val metadataPaths = mutableSetOf<Path>()
+    override val packageSourceJarMappings: Set<PackageSourceMapping> get() {
+        val lspInfos = mutableSetOf<Path>()
+        val packageSourceMappings = mutableSetOf<PackageSourceMapping>()
         val bazelOut = Paths.get(workspaceRoot.toAbsolutePath().toString(), "bazel-out")
         if(!bazelOut.exists()) {
             return emptySet()
@@ -30,13 +31,22 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
             paths.filter { Files.isRegularFile(it) }
                 .forEach { path ->
                     when {
-                        path.fileName.toString().endsWith("klsp-metadata.json") -> metadataPaths.add(path)
+                        path.fileName.toString().endsWith("kotlin-lsp.json") -> lspInfos.add(path)
                     }
                 }
         }
 
-        LOG.info("Found bazel jar metadata files: {}", metadataPaths)
-        return metadataPaths
+        lspInfos.forEach {
+            LspInfoExtractor.fromJson(it).packageSourceMappingsList.forEach { mapping ->
+                packageSourceMappings.add(PackageSourceMapping(
+                    sourceJar = workspaceRoot.resolve(mapping.sourceJarPath),
+                    sourcePackage = mapping.packageName,
+                ))
+            }
+        }
+
+        LOG.info("Found source jar/package mapping files: {}", packageSourceMappings)
+        return packageSourceMappings
     }
 
     private fun getBazelClassPathEntries(): Set<ClassPathEntry> {
