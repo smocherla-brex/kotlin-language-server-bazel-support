@@ -88,7 +88,7 @@ private fun findLocation(
     compiler: Compiler,
     tempDir: TemporaryDirectory
 ): Location? {
-    val sourceFileInfo = SourceJarParser().findSourceFileInfo(
+    val sourceFileInfo = SourceJarParser.findSourceFileInfo(
         sourcesJarPath = sourceJar,
         packageName = packageName,
         className = className

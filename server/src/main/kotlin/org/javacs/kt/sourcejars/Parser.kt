@@ -12,69 +12,41 @@ data class SourceFileInfo(
     val isJava: Boolean = false,
 )
 
-class SourceJarParser {
+object SourceJarParser {
 
-    private fun getSourceFilePath(packageName: String, className: String, kt: Boolean): String {
-        val suffix = if(kt) {
-            ".kt"
-        } else {
-            ".java"
-        }
-        return if (packageName.isEmpty()) {
-            "$className$suffix"
-        } else {
-            "${packageName.replace('.', '/')}/$className$suffix"
-        }
-    }
     fun findSourceFileInfo(
         sourcesJarPath: String,
         packageName: String,
         className: String
     ): SourceFileInfo? {
         JarFile(File(sourcesJarPath)).use { jar ->
-            var ktSourceFilePath = getSourceFilePath(packageName, className, true)
-            val javaSourceFilePath = getSourceFilePath(packageName, className, false)
-
-            // TODO: this is a bit of a hack, find a better solution
-            // but we don't follow a standard structure of the sources/tests expected in a JAR
-            // so we need to inject additional parts into the path
-            val baseKtFileName = ktSourceFilePath
-            if (!isExternalJar(sourcesJarPath)) {
-                ktSourceFilePath = if (!sourcesJarPath.contains("test/")) {
-                    "main/kotlin/$ktSourceFilePath"
-                } else if(sourcesJarPath.contains("test/")) {
-                    "kotlin/$ktSourceFilePath"
-                } else{
-                    ktSourceFilePath
-                }
+            val ktPath = "${className}.kt"
+            val entry = JarFile(sourcesJarPath).entries().toList().firstOrNull {
+                it.toString().endsWith(ktPath)
             }
 
-
-            var entry = jar.getJarEntry(ktSourceFilePath)
-            var isJava = false
-            if(entry == null) {
-                // if we still couldn't find it, try looking through all the entries that may match
-                // because our jar structures aren't consistent
-                entry = jar.entries().toList().filter { it.toString().endsWith(className + ".kt") }.firstOrNull()
-                if (entry == null) {
-                    entry = jar.entries().toList().filter { it.toString().endsWith(className + ".java") }.firstOrNull()
-                    isJava = entry != null
-                }
-            }
-            // if we couldn't find it, try for a Java source file as we have Java dependencies
-            if (entry == null) {
-               entry = jar.getJarEntry(javaSourceFilePath)
-                isJava = true
-            }
-
-            return entry?.let {
-                SourceFileInfo(
+            if(entry != null) {
+                return SourceFileInfo(
                     contents = jar.getInputStream(entry).bufferedReader().readText(),
                     pathInJar = entry.toString(),
-                    isJava = isJava,
+                    isJava = false
                 )
             }
 
+            val javaPath = "${className}.java"
+            val javaEntry = JarFile(sourcesJarPath).entries().toList().firstOrNull {
+                it.toString().endsWith(javaPath)
+            }
+
+            if(javaEntry != null) {
+                return SourceFileInfo(
+                    contents = jar.getInputStream(javaEntry).bufferedReader().readText(),
+                    pathInJar = entry.toString(),
+                    isJava = true
+                )
+            }
+
+            return null
         }
     }
 }

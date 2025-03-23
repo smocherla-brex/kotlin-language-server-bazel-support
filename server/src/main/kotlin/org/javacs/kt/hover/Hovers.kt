@@ -142,7 +142,7 @@ private fun kDocForDescriptor(
 
 private fun findKdoc(workspaceRoot: Path, sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler): String? {
     val actualSourceJar = getSourceJarPath(workspaceRoot, sourceJar).toAbsolutePath().toString()
-    val sourceFileInfo = SourceJarParser().findSourceFileInfo(
+    val sourceFileInfo = SourceJarParser.findSourceFileInfo(
         sourcesJarPath = actualSourceJar,
         packageName = packageName,
         className = className
