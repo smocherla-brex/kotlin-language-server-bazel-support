@@ -31,20 +31,17 @@ fun goToDefinition(
 
     // Try finding the location from source jars first,
     // if we don't find it, then try looking through the PSI
-    val location = locationFromClassPath(cp.workspaceRoots.first(), target, cp.packageSourceMappings, cp.compiler, tempDir)
-    if(location == null) {
+    var destination = locationFromClassPath(cp.workspaceRoots.first(), target, cp.packageSourceMappings, cp.compiler, tempDir)
+    if(destination == null) {
         LOG.warn("Didn't find location for {} through source jars", target)
         val psi = target.findPsi()
-        var destination = location(target)
+        destination = location(target)
 
         if (psi is KtNamedDeclaration) {
             destination = psi.nameIdentifier?.let(::location) ?: destination
         }
-        if(destination != null) {
-            return destination
-        }
     }
-    return location
+    return destination
 }
 
 private fun locationFromClassPath(workspaceRoot: Path, target: DeclarationDescriptor, packageSourceMappings: Set<PackageSourceMapping>, compiler: Compiler, tempDir: TemporaryDirectory): Location? {
