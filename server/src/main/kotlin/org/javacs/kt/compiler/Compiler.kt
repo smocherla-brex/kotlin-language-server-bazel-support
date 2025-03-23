@@ -643,10 +643,7 @@ class Compiler(
 
             override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
                 super.visitNamedDeclaration(declaration)
-                if (declaration.name == declarationName && (declaration is KtClassOrObject ||
-                        declaration is KtNamedFunction ||
-                        declaration is KtProperty ||
-                        declaration is KtParameter)) {
+                if (declaration.name == declarationName) {
                     docText = declaration.docComment?.getDefaultSection()?.getContent()
                 }
             }

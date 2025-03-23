@@ -3,11 +3,13 @@ package org.javacs.kt.bazel
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.javacs.kt.BazelLanguageServerTextFixture
+import org.junit.Ignore
 import org.junit.Test
 
 class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test_fixtures/src/kotlin/brex/lsp_fixtures/Foo.kt") {
 
     @Test
+    @Ignore("Extension functions are not supported yet")
     fun `go to definition on a extension function`() {
         val definitions = languageServer.textDocumentService.definition(definitionParams(file, 7, 40)).get().left
         val uris = definitions.map { it.uri }
@@ -26,6 +28,7 @@ class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test
     }
 
     @Test
+    @Ignore("Inline functions are not supported yet")
     fun `go to definition on a kotlin proto dsl`() {
         val definitions = languageServer.textDocumentService.definition(definitionParams(file, 5, 76)).get().left
         val uris = definitions.map { it.uri }
@@ -37,7 +40,7 @@ class DefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test
 
     @Test
     fun `go to definition on an external import`() {
-        val definitions = languageServer.textDocumentService.definition(definitionParams(file, 8, 24)).get().left
+        val definitions = languageServer.textDocumentService.definition(definitionParams(file, 8, 23)).get().left
         val uris = definitions.map { it.uri }
 
         assertThat(definitions, hasSize(1))

@@ -1,0 +1,16 @@
+{
+  "bazelTarget": "@maven//:com_google_protobuf_protobuf_java",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/maven/com/google/protobuf/protobuf-java/3.18.2/processed_protobuf-java-3.18.2.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/maven/com/google/protobuf/protobuf-java/3.18.2/protobuf-java-3.18.2-sources.jar"
+  }],
+  "sourceFiles": [{
+  }],
+  "packageSourceMappings": [{
+    "packageName": "com.google.protobuf",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/protobuf/protobuf-java/3.18.2/protobuf-java-3.18.2-sources.jar"
+  }, {
+    "packageName": "com.google.protobuf.compiler",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/com/google/protobuf/protobuf-java/3.18.2/protobuf-java-3.18.2-sources.jar"
+  }]
+}

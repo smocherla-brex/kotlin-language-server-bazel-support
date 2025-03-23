@@ -21,6 +21,9 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.eclipse.lsp4j.Location
 import org.javacs.kt.compiler.*
+import org.javacs.kt.kotest.DescribeInfo
+import org.javacs.kt.kotest.ItInfo
+import org.javacs.kt.kotest.KotestClassInfo
 import org.javacs.kt.util.toRange
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies

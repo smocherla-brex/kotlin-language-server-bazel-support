@@ -1,0 +1,28 @@
+{
+  "bazelTarget": "@com_github_grpc_grpc_kotlin//stub/src/main/java/io/grpc/kotlin:stub",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/stub.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/stub-sources.jar"
+  }],
+  "sourceFiles": [{
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/AbstractCoroutineServerImpl.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/AbstractCoroutineStub.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/ClientCalls.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/CoroutineContextServerInterceptor.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/Helpers.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/Readiness.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/ServerCalls.kt"
+  }, {
+    "path": "external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/StubFor.kt"
+  }],
+  "packageSourceMappings": [{
+    "packageName": "io.grpc.kotlin",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/com_github_grpc_grpc_kotlin/stub/src/main/java/io/grpc/kotlin/stub-sources.jar"
+  }]
+}

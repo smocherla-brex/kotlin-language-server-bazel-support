@@ -1,0 +1,13 @@
+{
+  "bazelTarget": "@//protos/spend/accounting/record/v1/services:_DO_NOT_DEPEND_kt_proto_proto",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/protos/spend/accounting/record/v1/services/_DO_NOT_DEPEND_kt_proto_proto.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/protos/spend/accounting/record/v1/services/_DO_NOT_DEPEND_kt_proto_proto-sources.jar"
+  }],
+  "sourceFiles": [{
+  }],
+  "packageSourceMappings": [{
+    "packageName": "brex.proto.spend.accounting.record.v1.services",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/protos/spend/accounting/record/v1/services/_DO_NOT_DEPEND_kt_proto_proto-sources.jar"
+  }]
+}

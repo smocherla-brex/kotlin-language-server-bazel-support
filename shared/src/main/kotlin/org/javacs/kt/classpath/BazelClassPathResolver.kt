@@ -5,7 +5,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import org.javacs.kt.LOG
-import org.javacs.kt.proto.LspInfoExtractor
+import org.javacs.kt.proto.LspInfo
 import java.nio.file.FileVisitOption
 
 internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPathResolver
@@ -37,7 +37,7 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
         }
 
         lspInfos.forEach {
-            LspInfoExtractor.fromJson(it).packageSourceMappingsList.forEach { mapping ->
+            LspInfo.fromJson(it).packageSourceMappingsList.forEach { mapping ->
                 packageSourceMappings.add(PackageSourceMapping(
                     sourceJar = workspaceRoot.resolve(mapping.sourceJarPath),
                     sourcePackage = mapping.packageName,
@@ -47,6 +47,14 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
 
         LOG.info("Found source jar/package mapping files: {}", packageSourceMappings)
         return packageSourceMappings
+    }
+
+    private fun jarAbsolutePath(bazelOutPath: String): Path {
+        if(bazelOutPath.isEmpty()) {
+            return Paths.get(bazelOutPath)
+        }
+
+        return workspaceRoot.resolve(bazelOutPath)
     }
 
     private fun getBazelClassPathEntries(): Set<ClassPathEntry> {
@@ -68,13 +76,13 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
                 }
         }
         val targetInfos = lspInfos.map {
-            LspInfoExtractor.fromJson(it)
+            LspInfo.fromJson(it)
         }
         targetInfos.forEach {
             it.classpathList.forEach { entry ->
                 cp.add(ClassPathEntry(
-                    compiledJar = Paths.get(entry.compileJar),
-                    sourceJar = Paths.get(entry.sourceJar),
+                    compiledJar = jarAbsolutePath(entry.compileJar),
+                    sourceJar = jarAbsolutePath(entry.sourceJar)
                 ))
             }
 

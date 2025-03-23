@@ -1,23 +1,20 @@
 package org.javacs.kt
 
 import com.intellij.openapi.util.text.StringUtil.convertLineSeparators
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.Language
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
-import org.javacs.kt.proto.LspInfoExtractor
 import org.javacs.kt.util.KotlinLSException
 import org.javacs.kt.util.filePath
-import org.javacs.kt.util.partitionAroundLast
 import org.javacs.kt.util.describeURIs
 import org.javacs.kt.util.describeURI
+import org.javacs.kt.proto.LspInfo
 import java.io.BufferedReader
 import java.io.StringReader
 import java.io.StringWriter
 import java.io.IOException
 import java.io.FileNotFoundException
 import java.net.URI
-import java.nio.file.FileSystems
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
@@ -194,7 +191,7 @@ class SourceFiles(
         // to reduce filesystem calls
         return Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
             paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("kotlin-lsp.json") }
-                .map { path: Path -> LspInfoExtractor.fromJson(path) }
+                .map { path: Path -> LspInfo.fromJson(path) }
                 .map { it.sourceFilesList }
                 .collect(Collectors.toList())
                 .flatten()

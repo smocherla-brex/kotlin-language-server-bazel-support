@@ -24,9 +24,7 @@ import kotlin.io.path.writeText
 fun goToDefinition(
     file: CompiledFile,
     cursor: Int,
-    classContentProvider: ClassContentProvider,
     tempDir: TemporaryDirectory,
-    config: ExternalSourcesConfiguration,
     cp: CompilerClassPath
 ): Location? {
     val (_, target) = file.referenceExpressionAtPoint(cursor) ?: return null
@@ -100,16 +98,19 @@ private fun findLocation(
     )
 
     return when {
-        sourceJar.contains("external/") -> {
-            getLocalSourcePath(workspaceRoot, sourceJar, className)?.let { sourcePath ->
-                Location(sourcePath.toUri().toString(), range)
-            }
+        // Need a better way to do this - this is to ensure we try to
+        // extract from JARs for external and proto jars
+        sourceJar.contains("external/") || sourceJar.contains("-speed") -> {
+
+            Location(
+                getSourceFilePathInJar(sourceFileInfo, tempDir),
+                range
+            )
         }
 
-        else -> Location(
-            getSourceFilePathInJar(sourceJar, sourceFileInfo, tempDir),
-            range
-        )
+        else -> getLocalSourcePath(workspaceRoot, sourceJar, className)?.let { sourcePath ->
+            Location(sourcePath.toUri().toString(), range)
+        }
     }
 }
 
@@ -124,7 +125,7 @@ private fun getLocalSourcePath(workspaceRoot: Path, jarPath: String, className: 
     }
 }
 
-fun getSourceFilePathInJar(sourceJar: String, sourceFileInfo: SourceFileInfo, tempDir: TemporaryDirectory): String {
+fun getSourceFilePathInJar(sourceFileInfo: SourceFileInfo, tempDir: TemporaryDirectory): String {
     val tempSourceFile = tempDir.createTempFile(suffix = if(sourceFileInfo.isJava) ".java" else ".kt")
     tempSourceFile.writeText(sourceFileInfo.contents)
     return tempSourceFile.toUri().toString()

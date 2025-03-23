@@ -1,4 +1,4 @@
-package org.javacs.kt.compiler
+package org.javacs.kt.kotest
 
 import org.eclipse.lsp4j.Range
 

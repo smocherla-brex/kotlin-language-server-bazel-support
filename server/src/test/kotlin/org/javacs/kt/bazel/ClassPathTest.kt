@@ -30,7 +30,7 @@ class ClassPathTest {
         val classPath = resolvers.classpathOrEmpty.map { it.toString() }
 
         // Has all the classpath entries
-        assertEquals(resolvers.classpath.size, 67)
+        assertEquals(resolvers.classpath.size, 118)
 
         assertThat(classPath, hasItem(containsString("accounting")))
         assertThat(classPath, hasItem(containsString("protos")))

@@ -130,7 +130,7 @@ class KotlinTextDocumentService(
             LOG.info("Go-to-definition at {}", describePosition(position))
 
             val (file, cursor) = recover(position, Recompile.NEVER) ?: return@compute Either.forLeft(emptyList())
-            goToDefinition(file, cursor, uriContentProvider.classContentProvider, tempDirectory, config.externalSources, cp)
+            goToDefinition(file, cursor, tempDirectory, cp)
                 ?.let(::listOf)
                 ?.let { Either.forLeft<List<Location>, List<LocationLink>>(it) }
                 ?: noResult("Couldn't find definition at ${describePosition(position)}", Either.forLeft(emptyList()))

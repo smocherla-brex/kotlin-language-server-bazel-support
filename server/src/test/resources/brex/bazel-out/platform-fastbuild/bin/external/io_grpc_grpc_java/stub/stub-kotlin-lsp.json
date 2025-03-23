@@ -1,0 +1,49 @@
+{
+  "bazelTarget": "@io_grpc_grpc_java//stub:stub",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/io_grpc_grpc_java/stub/libstub.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/io_grpc_grpc_java/stub/libstub-src.jar"
+  }],
+  "sourceFiles": [{
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/AbstractAsyncStub.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/AbstractBlockingStub.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/AbstractFutureStub.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/AbstractStub.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/CallStreamObserver.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/ClientCallStreamObserver.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/ClientCalls.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/ClientResponseObserver.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/InternalClientCalls.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/MetadataUtils.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/ServerCallStreamObserver.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/ServerCalls.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/StreamObserver.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/StreamObservers.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/annotations/GrpcGenerated.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/annotations/RpcMethod.java"
+  }, {
+    "path": "external/io_grpc_grpc_java/stub/src/main/java/io/grpc/stub/package-info.java"
+  }],
+  "packageSourceMappings": [{
+    "packageName": "io.grpc.stub",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/io_grpc_grpc_java/stub/libstub-src.jar"
+  }, {
+    "packageName": "io.grpc.stub.annotations",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/io_grpc_grpc_java/stub/libstub-src.jar"
+  }]
+}

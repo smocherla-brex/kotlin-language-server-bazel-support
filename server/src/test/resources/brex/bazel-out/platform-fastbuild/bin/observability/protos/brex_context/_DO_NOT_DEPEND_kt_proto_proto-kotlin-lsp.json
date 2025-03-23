@@ -1,0 +1,13 @@
+{
+  "bazelTarget": "@//observability/protos/brex_context:_DO_NOT_DEPEND_kt_proto_proto",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/observability/protos/brex_context/_DO_NOT_DEPEND_kt_proto_proto.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/observability/protos/brex_context/_DO_NOT_DEPEND_kt_proto_proto-sources.jar"
+  }],
+  "sourceFiles": [{
+  }],
+  "packageSourceMappings": [{
+    "packageName": "brex.context.models",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/observability/protos/brex_context/_DO_NOT_DEPEND_kt_proto_proto-sources.jar"
+  }]
+}

@@ -1,0 +1,13 @@
+{
+  "bazelTarget": "@maven//:javax_inject_javax_inject",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/external/maven/javax/inject/javax.inject/1/processed_javax.inject-1.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/external/maven/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
+  }],
+  "sourceFiles": [{
+  }],
+  "packageSourceMappings": [{
+    "packageName": "javax.inject",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/external/maven/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
+  }]
+}

@@ -5,7 +5,7 @@ import com.google.protobuf.util.JsonFormat
 import java.io.File
 import java.nio.file.Path
 
-object LspInfoExtractor {
+object LspInfo {
 
     fun fromJson(jsonFile: Path): KotlinLspBazelTargetInfo {
         val targetInfo = KotlinLspBazelTargetInfo.newBuilder()

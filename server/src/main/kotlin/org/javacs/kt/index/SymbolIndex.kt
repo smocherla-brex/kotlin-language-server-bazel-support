@@ -176,23 +176,6 @@ class SymbolIndex(
             }
         }
 
-    private fun addDeclarations(declarations: Sequence<DeclarationDescriptor>) =
-        declarations.forEach { declaration ->
-            val (descriptorFqn, extensionReceiverFqn) = getFqNames(declaration)
-
-            if (validFqName(descriptorFqn) && (extensionReceiverFqn?.let { validFqName(it) } != false)) {
-                SymbolEntity.new {
-                    fqName = descriptorFqn.toString()
-                    shortName = descriptorFqn.shortName().toString()
-                    kind = declaration.accept(ExtractSymbolKind, Unit).rawValue
-                    visibility = declaration.accept(ExtractSymbolVisibility, Unit).rawValue
-                    extensionReceiverType = extensionReceiverFqn?.toString()
-                }
-            } else {
-                LOG.warn("Excluding symbol {} from index since its name is too long", descriptorFqn.toString())
-            }
-        }
-
     private fun getFqNames(declaration: DeclarationDescriptor): Pair<FqName, FqName?> {
         val descriptorFqn = declaration.fqNameSafe
         val extensionReceiverFqn = declaration.accept(ExtractSymbolExtensionReceiverType, Unit)?.takeIf { !it.isRoot }
