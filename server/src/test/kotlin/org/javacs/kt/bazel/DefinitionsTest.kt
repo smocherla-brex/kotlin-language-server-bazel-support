@@ -1,4 +1,4 @@
-package org.javacs.kt.brex
+package org.javacs.kt.bazel
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*

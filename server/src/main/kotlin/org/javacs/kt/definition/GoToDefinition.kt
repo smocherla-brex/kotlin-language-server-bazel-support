@@ -100,13 +100,7 @@ private fun findLocation(
     )
 
     return when {
-        isProtoJar(sourceJar) -> {
-            Location(
-                getSourceFilePathInJar(sourceJar, sourceFileInfo, tempDir),
-                range
-            )
-        }
-        !isExternalJar(sourceJar) -> {
+        sourceJar.contains("external/") -> {
             getLocalSourcePath(workspaceRoot, sourceJar, className)?.let { sourcePath ->
                 Location(sourcePath.toUri().toString(), range)
             }

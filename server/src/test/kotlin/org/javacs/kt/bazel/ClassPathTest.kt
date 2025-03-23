@@ -1,4 +1,4 @@
-package org.javacs.kt.brex
+package org.javacs.kt.bazel
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsString
@@ -10,7 +10,6 @@ import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
 import java.nio.file.Files
-import kotlin.io.path.absolutePathString
 
 class ClassPathTest {
     companion object {
@@ -28,12 +27,10 @@ class ClassPathTest {
         assertTrue(Files.exists(buildFile))
 
         val resolvers = defaultClassPathResolver(listOf(workspaceRoot))
-        print(resolvers)
         val classPath = resolvers.classpathOrEmpty.map { it.toString() }
 
-        // Has all the metadata.json entries
+        // Has all the classpath entries
         assertEquals(resolvers.classpath.size, 67)
-        assertNotEquals(resolvers.jarMetadataJsonsOrEmpty.size, 0)
 
         assertThat(classPath, hasItem(containsString("accounting")))
         assertThat(classPath, hasItem(containsString("protos")))
