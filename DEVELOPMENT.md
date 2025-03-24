@@ -19,7 +19,7 @@ When you're making changes, you may want to debug it end-to-end with the VSCode 
 1. Point the VSCode extension to the locally build language server with
 ```json
 {
-    "brex.kotlinLanguageServer.path": "/Users/smocherla/src/kotlin-language-server/server/build/install/server/bin/kotlin-language-server"
+    "bazelKLS.kotlinLanguageServer.path": "/Users/smocherla/src/kotlin-language-server/server/build/install/server/bin/kotlin-language-server"
 }
 ```
 in the VSCode settings. Then it'll use the language server with your changes rather than one from the releases.
@@ -27,8 +27,8 @@ in the VSCode settings. Then it'll use the language server with your changes rat
 2. Enable the LSP to run with debugging mode
 ```json
 {
-    "brex.kotlinLanguageServer.debugAttach.enabled": true,
-    "brex.kotlinLanguageServer.debugAttach.port": 5006
+    "bazelKLS.kotlinLanguageServer.debugAttach.enabled": true,
+    "bazelKLS.kotlinLanguageServer.debugAttach.port": 5006
 }
 ```
 

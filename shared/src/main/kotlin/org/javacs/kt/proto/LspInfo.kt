@@ -1,8 +1,7 @@
 package org.javacs.kt.proto
 
-import brex.lsp.proto.KotlinLsp.KotlinLspBazelTargetInfo
+import org.bazelkls.proto.KotlinLsp.KotlinLspBazelTargetInfo
 import com.google.protobuf.util.JsonFormat
-import java.io.File
 import java.nio.file.Path
 
 object LspInfo {
