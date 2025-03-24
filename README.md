@@ -1,6 +1,6 @@
 # Kotlin Language Server with Bazel Support
 
-This is a fork of [kotlin-language-server](https://github.com/fwcd/kotlin-language-server) with Bazel support added to it. It works in tandem with a vscode extension.
+This is a fork of [kotlin-language-server](https://github.com/fwcd/kotlin-language-server) with Bazel support added to it. It works in tandem with a [vscode extension](https://github.com/smocherla-brex/bazel-kotlin-vscode-extension).
 
 
 ![Icon](Icon128.png)
@@ -13,7 +13,7 @@ This fork only focuses on Bazel support and making sure it works reliably. As a 
 - I had to remove any existing Gradle/Maven support as supporting all of them at the same time with the other changes was challenging.
 - This does not track all source files in the workspace by default for performance considerations. Only directories which are partially "synced"
  with the vscode extension are tracked and compiled to improve performance.
-- This has support for Go-to-definition and hover using pure source jars instead of decompiling (which is removed entirely).
+- This has support for Go-to-definition and hover using pure source jars instead of decompiling (which is removed entirely as it was too slow).
 
 
 ## License
