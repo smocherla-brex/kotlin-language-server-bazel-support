@@ -196,7 +196,7 @@ open class SingleFileTestFixture(
 open class BazelLanguageServerTextFixture(
     val file: String,
     config: Configuration = Configuration()
-): LanguageServerTestFixture("brex", config) {
+): LanguageServerTestFixture("bazel", config) {
     @Before fun openFile() {
         open(file)
 

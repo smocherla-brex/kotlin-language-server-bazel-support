@@ -21,7 +21,7 @@ class ClassPathTest {
 
     @Test
     fun `find bazel classpath`() {
-        val workspaceRoot = testResourcesRoot().resolve("brex")
+        val workspaceRoot = testResourcesRoot().resolve("bazel")
         val buildFile = workspaceRoot.resolve("WORKSPACE")
 
         assertTrue(Files.exists(buildFile))

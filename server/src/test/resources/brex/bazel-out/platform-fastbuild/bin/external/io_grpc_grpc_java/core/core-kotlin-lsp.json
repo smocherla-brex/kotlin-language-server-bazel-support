@@ -1,9 +1,0 @@
-{
-  "bazelTarget": "@io_grpc_grpc_java//core:core",
-  "classpath": [{
-    "compileJar": "bazel-out/platform-fastbuild/bin/external/io_grpc_grpc_java/core/libcore.jar",
-    "sourceJar": "bazel-out/platform-fastbuild/bin/external/io_grpc_grpc_java/core/libcore-src.jar"
-  }],
-  "sourceFiles": [{
-  }]
-}

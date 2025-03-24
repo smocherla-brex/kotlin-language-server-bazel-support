@@ -82,7 +82,7 @@ private class FileToEdit {
     }
 
     @Test fun editRef() {
-        val file1 = testResourcesRoot().resolve("brex/hover/Recover.kt")
+        val file1 = testResourcesRoot().resolve("bazel/hover/Recover.kt")
         val content = Files.readAllLines(file1).joinToString("\n")
         val original = compiler.createKtFile(content, file1)
         val (context, _) = compiler.compileKtFile(original, listOf(original))
