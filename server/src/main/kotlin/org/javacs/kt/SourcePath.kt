@@ -26,6 +26,11 @@ class SourcePath(
     private val indexingConfig: IndexingConfiguration,
     private val databaseService: DatabaseService
 ) {
+    companion object {
+        // The files were compiled serially in the original implementation because of an internal error with TopDownAnalyzer
+        // I have not encountered this as of yet, so enabling batch compiling to improve performance
+        const val COMPILE_BATCH_SIZE: Int = 10
+    }
     private val files = mutableMapOf<URI, SourceFile>()
     private val parseDataWriteLock = ReentrantLock()
 
@@ -34,6 +39,7 @@ class SourcePath(
     val index = SymbolIndex(databaseService)
 
     var beforeCompileCallback: () -> Unit = {}
+
 
     var progressFactory: Progress.Factory = Progress.Factory.None
         set(factory: Progress.Factory) {
@@ -253,12 +259,10 @@ class SourcePath(
     }
 
     fun compileAllFiles() {
-        // TODO: Investigate the possibility of compiling all files at once, instead of iterating here
-        // At the moment, compiling all files at once sometimes leads to an internal error from the TopDownAnalyzer
-        files.keys.forEach {
-            // If one of the files fails to compile, we compile the others anyway
+        files.keys.chunked(COMPILE_BATCH_SIZE) {
+            // If a batch of the files fails to compile, we compile the others anyway
             try {
-                compileFiles(listOf(it))
+                compileFiles(it)
             } catch (ex: Exception) {
                 LOG.printStackTrace(ex)
             }
