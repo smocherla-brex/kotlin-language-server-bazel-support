@@ -108,16 +108,10 @@ class KotlinWorkspaceService(
                 }
                 get("snippetsEnabled")?.asBoolean?.let { config.completion.snippets.enabled = it }
 
-                // Update compiler options
-                get("compiler")?.asJsonObject?.apply {
-                    val compiler = config.compiler
-                    get("jvm")?.asJsonObject?.apply {
-                        val jvm = compiler.jvm
-                        get("target")?.asString?.let {
-                            jvm.target = it
-                            cp.updateCompilerConfiguration()
-                        }
-                    }
+                // Update jvm target
+                get("jvmTarget")?.asString?.let {
+                    config.compiler.jvm.target = it
+                    cp.updateCompilerConfiguration()
                 }
 
                 // Update options for formatting
