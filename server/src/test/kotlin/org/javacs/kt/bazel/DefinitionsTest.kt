@@ -9,7 +9,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 
-class SourceJarDefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin/lsp_test_fixtures/src/kotlin/bazel/lsp_fixtures/Foo.kt") {
+class SourceJarDefinitionsTest: BazelLanguageServerTextFixture("src/Foo.kt") {
 
     @Test
     @Ignore("Extension functions are not supported yet")
@@ -34,7 +34,7 @@ class SourceJarDefinitionsTest: BazelLanguageServerTextFixture("libraries/kotlin
 
     @Test
     fun `go to definition on an external import`() {
-        val definitions = languageServer.textDocumentService.definition(definitionParams(file, 4, 24)).get().left
+        val definitions = languageServer.textDocumentService.definition(definitionParams(file, 4, 23)).get().left
         val uris = definitions.map { it.uri }
 
         assertThat(definitions, hasSize(1))
