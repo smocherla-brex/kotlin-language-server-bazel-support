@@ -1,0 +1,19 @@
+{
+  "bazelTarget": "@//src:lib",
+  "classpath": [{
+    "compileJar": "bazel-out/platform-fastbuild/bin/src/lib.jar",
+    "sourceJar": "bazel-out/platform-fastbuild/bin/src/lib-sources.jar"
+  }],
+  "sourceFiles": [{
+    "path": "src/Extensions.kt"
+  }, {
+    "path": "src/Foo.kt"
+  }],
+  "packageSourceMappings": [{
+    "packageName": "bazel.lsp_fixtures",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/src/lib-sources.jar"
+  }, {
+    "packageName": "bazel.lsp_fixtures.extensions",
+    "sourceJarPath": "bazel-out/platform-fastbuild/bin/src/lib-sources.jar"
+  }]
+}
