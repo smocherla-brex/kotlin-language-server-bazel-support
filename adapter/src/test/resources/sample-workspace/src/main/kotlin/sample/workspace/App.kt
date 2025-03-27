@@ -1,7 +1,4 @@
-package bazel.lsp_fixtures
-
-import bazel.lsp_fixtures.extensions.toBase64
-import javax.inject.Inject
+package sample.workspace
 
 class App {
     private val member: String = System.getProperty("test")
@@ -10,7 +7,7 @@ class App {
             val local: Int = 123
             return "Hello world."
         }
-
+    
     override fun toString(): String = "App"
 }
 

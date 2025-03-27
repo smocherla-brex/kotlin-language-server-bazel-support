@@ -14,5 +14,6 @@ plugins {
 include(
     "platform",
     "shared",
-    "server"
+    "server",
+    "adapter"
 )
