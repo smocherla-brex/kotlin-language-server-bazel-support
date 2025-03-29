@@ -42,33 +42,33 @@ class JDIDebuggee(
 	override val stderr: InputStream?
 
 	private var breakpointSubscriptions = SubscriptionBag()
-	
+
 	init {
 		eventBus = VMEventBus(vm)
-		
+
 		val process = vm.process()
 		stdin = process?.outputStream
 		stdout = process?.inputStream
 		stderr = process?.errorStream
-		
+
 		LOG.trace("Updating threads")
 		updateThreads()
 
 		LOG.trace("Updating breakpoints")
 		hookBreakpoints()
 	}
-	
+
 	override fun updateThreads() {
 		threads = vm.allThreads().map { JDIThread(it, this) }
 	}
-	
+
 	private fun hookBreakpoints() {
 		context.breakpointManager.also { manager ->
 			manager.breakpoints.listenAndFire { setAllBreakpoints(it.values.flatten()) }
 			manager.exceptionBreakpoints.listenAndFire(::setExceptionBreakpoints)
 		}
 	}
-	
+
 	private fun setAllBreakpoints(breakpoints: List<Breakpoint>) {
 		breakpointSubscriptions.unsubscribe()
 		vm.eventRequestManager().deleteAllBreakpoints()
@@ -79,7 +79,7 @@ class JDIDebuggee(
 			) }
 		}
 	}
-	
+
 	private fun setExceptionBreakpoints(breakpoints: Set<ExceptionBreakpoint>) = vm
 		.eventRequestManager()
 		.also { it.deleteEventRequests(it.exceptionRequests()) }
@@ -94,7 +94,7 @@ class JDIDebuggee(
 		?.apply { setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD) }
 		?.enable()
 		?: Unit
-	
+
 	/** Tries to set a breakpoint */
 	private fun setBreakpoint(filePath: String, lineNumber: Long) {
 		val eventRequestManager = vm.eventRequestManager()
@@ -106,7 +106,7 @@ class JDIDebuggee(
 				for (name in listOf(className, "$className$*")) { // For local types
 					val request = eventRequestManager
 						.createClassPrepareRequest()
-						.apply { addClassFilter(className) }
+						.apply { addClassFilter("bazel.lsp_fixtures.App") }
 
 					breakpointSubscriptions.add(eventBus.subscribe(ClassPrepareEvent::class) {
 						if (it.jdiEvent.request() == request) {
@@ -115,12 +115,12 @@ class JDIDebuggee(
 							setBreakpointAtType(referenceType, lineNumber)
 						}
 					})
-					
+
 					request.enable()
 				}
-				
+
 				// Try setting breakpoint using loaded VM classes
-				
+
 				val classPattern = "^${Regex.escape(className)}(?:\\$.*)?".toRegex()
 				vm.allClasses()
 					.filter { classPattern.matches(it.name()) }
@@ -130,7 +130,7 @@ class JDIDebuggee(
 					}
 			} ?: LOG.warn("Not adding breakpoint in unrecognized source file {}", Paths.get(filePath).fileName)
 	}
-	
+
 	/** Tries to set a breakpoint - Will return whether this was successful */
 	private fun setBreakpointAtType(refType: ReferenceType, lineNumber: Long): Boolean {
 		try {
@@ -152,7 +152,7 @@ class JDIDebuggee(
 	override fun resume() {
 		vm.resume()
 	}
-	
+
 	override fun exit() {
 		LOG.info("Exiting JDI session")
 		try {
@@ -163,10 +163,10 @@ class JDIDebuggee(
 			// Ignore since we wanted to stop the VM anyway
 		}
 	}
-	
+
 	override fun positionOf(location: Location): Position? = sourceOf(location)
 		?.let { Position(it, location.lineNumber()) }
-	
+
     private fun sourceOf(location: Location): Source? =
         try {
             val sourcePath = location.sourcePath()

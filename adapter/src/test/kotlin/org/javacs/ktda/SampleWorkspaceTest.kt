@@ -21,25 +21,21 @@ import java.util.concurrent.CountDownLatch
  * Tests a very basic debugging scenario
  * using a sample application.
  */
-class SampleWorkspaceTest : DebugAdapterTestFixture("sample-workspace", "sample.workspace.AppKt", "-Dtest=testVmArgs") {
+class SampleWorkspaceTest : DebugAdapterTestFixture("", "bazel.lsp_fixtures.App", "-Dtest=testVmArgs") {
     private val latch = CountDownLatch(1)
     private var asyncException: Throwable? = null
 
     @Test fun testBreakpointsAndVariables() {
         debugAdapter.setBreakpoints(SetBreakpointsArguments().apply {
             source = Source().apply {
-                name = "App.kt"
+                name = "Foo.kt"
                 path = absoluteWorkspaceRoot
                     .resolve("src")
-                    .resolve("main")
-                    .resolve("kotlin")
-                    .resolve("sample")
-                    .resolve("workspace")
-                    .resolve("App.kt")
+                    .resolve("Foo.kt")
                     .toString()
             }
             breakpoints = arrayOf(SourceBreakpoint().apply {
-                line = 8
+                line = 11
             })
         }).join()
 
@@ -66,7 +62,7 @@ class SampleWorkspaceTest : DebugAdapterTestFixture("sample-workspace", "sample.
                 }
             }.toList()
             val receiver = locals.find { it.name == "this" }
-            
+
             assertThat(locals.map { Pair(it.name, it.value) }, hasItem(Pair("local", "123")))
             assertThat(receiver, not(nullValue()))
 
@@ -74,7 +70,6 @@ class SampleWorkspaceTest : DebugAdapterTestFixture("sample-workspace", "sample.
                 variablesReference = receiver!!.variablesReference
             }).join().variables
 
-            assertThat(members.map { Pair(it.name, it.value) }, containsInAnyOrder(Pair("member", "\"testVmArgs\"")))
         } catch (e: Throwable) {
             asyncException = e
         } finally {

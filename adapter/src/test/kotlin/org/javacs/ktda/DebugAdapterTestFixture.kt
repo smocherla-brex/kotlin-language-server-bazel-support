@@ -19,7 +19,7 @@ abstract class DebugAdapterTestFixture(
     private val mainClass: String,
     private val vmArguments: String = ""
 ) : IDebugProtocolClient {
-    val absoluteWorkspaceRoot: Path = Paths.get(DebugAdapterTestFixture::class.java.getResource("/Anchor.txt").toURI()).parent.resolve(relativeWorkspaceRoot)
+    val absoluteWorkspaceRoot: Path = Paths.get(DebugAdapterTestFixture::class.java.getResource("/bazel/WORKSPACE").toURI()).parent.resolve(relativeWorkspaceRoot)
     lateinit var debugAdapter: KotlinDebugAdapter
 
     @Before fun startDebugAdapter() {
