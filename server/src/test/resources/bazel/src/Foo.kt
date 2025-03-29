@@ -3,10 +3,20 @@ package bazel.lsp_fixtures
 import bazel.lsp_fixtures.extensions.toBase64
 import javax.inject.Inject
 
-class Foo {
+class App {
+    private val member: String = "10"
+    val greeting: String
+        get() {
+            val local: Int = 123
+            return "Hello world."
+        }
 
-    fun hello() {
-        val foo = "foo"
-        println(foo.toBase64())
+    override fun toString(): String = "App"
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            println(App().greeting)
+        }
     }
 }

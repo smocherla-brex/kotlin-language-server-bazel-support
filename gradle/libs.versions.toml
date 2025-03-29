@@ -52,6 +52,7 @@ org-jetbrains-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gra
 
 com-google-protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version = "3.18.2"}
 com-google-protobuf-java-util = {group = "com.google.protobuf", name = "protobuf-java-util", version = "3.18.2"}
+org-eclipse-lsp4j-org-eclipse-lsp4j-debug = {group = "org.eclipse.lsp4j", name = "org.eclipse.lsp4j.debug", version = "0.15.0"}
 
 [plugins]
 com-github-jk1-tcdeps = { id = "com.github.jk1.tcdeps", version = "1.6.2" }
