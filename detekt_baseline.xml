@@ -4,6 +4,7 @@
   <CurrentIssues>
     <ID>ComplexCondition:SemanticTokens.kt$element is KtVariableDeclaration &amp;&amp; (!element.isVar || element.hasModifier(KtTokens.CONST_KEYWORD)) || element is KtParameter</ID>
     <ID>CyclomaticComplexMethod:Completions.kt$private fun indexCompletionItems(file: CompiledFile, cursor: Int, element: KtElement?, index: SymbolIndex, partial: String): Sequence&lt;CompletionItem&gt;</ID>
+    <ID>CyclomaticComplexMethod:DAPConverter.kt$DAPConverter$fun toDAPCompletionItemType(internalType: InternalCompletionItemType)</ID>
     <ID>CyclomaticComplexMethod:SemanticTokens.kt$private fun elementToken(element: PsiElement, bindingContext: BindingContext): SemanticToken?</ID>
     <ID>CyclomaticComplexMethod:StringUtils.kt$fun stringDistance(candidate: CharSequence, pattern: CharSequence, maxOffset: Int = 4): Int</ID>
     <ID>EmptyFunctionBlock:KotlinLanguageServer.kt$KotlinLanguageServer${}</ID>
@@ -11,9 +12,12 @@
     <ID>EmptyFunctionBlock:LoggingMessageCollector.kt$LoggingMessageCollector${}</ID>
     <ID>EmptySecondaryConstructor:KotlinLSException.kt$KotlinLSException${}</ID>
     <ID>ExplicitItLambdaParameter:Hovers.kt${ i, it -&gt; val ret: String if (i == 0) ret = it.substring(it.indexOf("/**") + 3) // get rid of the start comment characters else if (i == split.size - 1) ret = it.substring(it.indexOf("*/") + 2) // get rid of the end comment characters else ret = it.substring(it.indexOf('*') + 1) // get rid of any leading * ret }</ID>
+    <ID>ExplicitItLambdaParameter:JDIVariable.kt$JDIVariable${ i, it -&gt; JDIVariable(i.toString(), it) }</ID>
     <ID>ExplicitItLambdaParameter:RenderCompletionItem.kt${ it -&gt; it }</ID>
     <ID>ForbiddenComment:AddMissingImportsQuickFix.kt$AddMissingImportsQuickFix$// TODO: Visibility checker should be less liberal</ID>
     <ID>ForbiddenComment:BackupClassPathResolver.kt$// TODO: Resolve the gradleCaches dynamically instead of hardcoding this path</ID>
+    <ID>ForbiddenComment:Breakpoint.kt$// TODO: Conditional breakpoints and logpoints</ID>
+    <ID>ForbiddenComment:BreakpointManager.kt$BreakpointManager$// TODO: Validation logic</ID>
     <ID>ForbiddenComment:CompiledFile.kt$CompiledFile$* Looks for a reference expression at the given cursor. * This is currently used by many features in the language server. * Unfortunately, it fails to find declarations for JDK symbols. * [referenceExpressionAtPoint] provides an alternative implementation that can find JDK symbols. * It cannot, however, replace this method at the moment. * TODO: Investigate why this method doesn't find JDK symbols.</ID>
     <ID>ForbiddenComment:Compiler.kt$CompilationEnvironment$// TODO: KotlinScriptDefinition will soon be deprecated, use</ID>
     <ID>ForbiddenComment:Compiler.kt$CompilationEnvironment$// TODO: Use ScriptDefinition.FromLegacyTemplate directly if possible</ID>
@@ -23,11 +27,20 @@
     <ID>ForbiddenComment:Completions.kt$// TODO: Deal with alias imports</ID>
     <ID>ForbiddenComment:Completions.kt$// TODO: Visibility checker should be less liberal</ID>
     <ID>ForbiddenComment:Imports.kt$// TODO: Lexicographic insertion</ID>
+    <ID>ForbiddenComment:JDIException.kt$JDIException$// TODO: Stack frames</ID>
+    <ID>ForbiddenComment:JDIStackFrame.kt$JDIStackFrame$// TODO: Argument values?</ID>
+    <ID>ForbiddenComment:JDIStackFrame.kt$JDIStackFrame$// TODO: Implement proper expression parsing</ID>
+    <ID>ForbiddenComment:JDIStackFrame.kt$JDIStackFrame$// TODO: Scope "Fields"</ID>
+    <ID>ForbiddenComment:JDIVariable.kt$JDIVariable$// TODO: Better string representation</ID>
     <ID>ForbiddenComment:JavaElementConverter.kt$JavaElementConverter$// TODO: Break labels</ID>
     <ID>ForbiddenComment:JavaElementConverter.kt$JavaElementConverter$// TODO: Nullability</ID>
     <ID>ForbiddenComment:JavaElementConverter.kt$JavaElementConverter$// TODO: Type parameters, annotations, modifiers, ...</ID>
     <ID>ForbiddenComment:JavaElementConverter.kt$JavaElementConverter$// TODO: Varargs, ...</ID>
     <ID>ForbiddenComment:JdkSourceArchiveProvider.kt$JdkSourceArchiveProvider$* Checks if the given path is inside the JDK. If it is, we return the corresponding source zip. * Note that this method currently doesn't take into the account the JDK version, which means JDK source code * is only available for JDK 9+ builds. * TODO: improve this resolution logic to work for older JDK versions as well.</ID>
+    <ID>ForbiddenComment:KotlinDebugAdapter.kt$KotlinDebugAdapter$// TODO: Find a cleaner solution once https://github.com/eclipse/lsp4j/issues/229 is resolved</ID>
+    <ID>ForbiddenComment:KotlinDebugAdapter.kt$KotlinDebugAdapter$// TODO: Support logpoints and conditional breakpoints</ID>
+    <ID>ForbiddenComment:KotlinDebugAdapter.kt$KotlinDebugAdapter$// TODO: This is a workaround for https://github.com/eclipse/lsp4j/issues/229</ID>
+    <ID>ForbiddenComment:KotlinDebugAdapter.kt$KotlinDebugAdapter$// TODO: Use actual exitCode instead</ID>
     <ID>ForbiddenComment:KotlinTextDocumentService.kt$KotlinTextDocumentService$// TODO: Investigate when to recompile</ID>
     <ID>ForbiddenComment:KotlinTextDocumentService.kt$KotlinTextDocumentService$// TODO: comment this in code, we need to use DI and abstract this out</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: any way can repeat less code between this and the getAbstractMembersStubs in the ImplementAbstractMembersQuickfix?</ID>
@@ -35,14 +48,17 @@
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: look further into this</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: look into this</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: see where this should ideally be placed</ID>
+    <ID>ForbiddenComment:PathUtils.kt$// TODO: Better path resolution, especially when dealing with</ID>
+    <ID>ForbiddenComment:PathUtils.kt$// TODO: Implement this using the Kotlin compiler API instead</ID>
+    <ID>ForbiddenComment:PathUtils.kt$// TODO: Use Project.sourcesRoot instead</ID>
     <ID>ForbiddenComment:SemanticTokens.kt$// TODO: Ideally we would like to cut-off subtrees outside our range, but this doesn't quite seem to work</ID>
     <ID>ForbiddenComment:SourceExclusions.kt$SourceExclusions$// TODO: Read exclusions from gitignore/settings.json/... instead of</ID>
     <ID>ForbiddenComment:SourceFiles.kt$SourceFiles$// TODO: we walk bazel-out here again to collect the files emitted by the aspect</ID>
-    <ID>ForbiddenComment:SourcePath.kt$SourcePath$// TODO: Investigate the possibility of compiling all files at once, instead of iterating here</ID>
     <ID>ForbiddenComment:SourcePath.kt$SourcePath.SourceFile$// TODO: Create PsiFile using the stored language instead</ID>
     <ID>ForbiddenComment:SourcePath.kt$SourcePath.SourceFile$// TODO: Use language?.associatedFileType?.defaultExtension again</ID>
     <ID>ForbiddenComment:Symbol.kt$Symbol$// TODO: Store location (e.g. using a URI)</ID>
     <ID>ForbiddenComment:SymbolIndex.kt$SymbolIndex$// TODO: Extension completion currently only works if the receiver matches exactly,</ID>
+    <ID>ForbiddenComment:VariableTreeNode.kt$VariableTreeNode$// TODO: Setters for values?</ID>
     <ID>FunctionOnlyReturningConstant:Example.kt$fun example()</ID>
     <ID>LongMethod:Compiler.kt$CompilationEnvironment.&lt;no name provided&gt;.&lt;no name provided&gt;$override fun resolve(scriptContents: ScriptContents, environment: Environment)</ID>
     <ID>LongMethod:SemanticTokens.kt$private fun elementToken(element: PsiElement, bindingContext: BindingContext): SemanticToken?</ID>
@@ -62,6 +78,8 @@
     <ID>MagicNumber:Logger.kt$LogLevel.NONE$100</ID>
     <ID>MagicNumber:Logger.kt$LogLevel.TRACE$2</ID>
     <ID>MagicNumber:Logger.kt$Logger$10</ID>
+    <ID>MagicNumber:LoggingInputStream.kt$20</ID>
+    <ID>MagicNumber:LoggingOutputStream.kt$20</ID>
     <ID>MagicNumber:MavenClassPathResolver.kt$3</ID>
     <ID>MagicNumber:MavenClassPathResolver.kt$4</ID>
     <ID>MagicNumber:MavenClassPathResolver.kt$5</ID>
@@ -78,10 +96,15 @@
     <ID>MagicNumber:Symbol.kt$Symbol.Visibility.PUBLIC$4</ID>
     <ID>MagicNumber:Symbol.kt$Symbol.Visibility.UNKNOWN$5</ID>
     <ID>MagicNumber:URIs.kt$5</ID>
+    <ID>MagicNumber:Utils.kt$1000</ID>
+    <ID>MagicNumber:Utils.kt$10_000</ID>
+    <ID>MagicNumber:Utils.kt$80</ID>
     <ID>MagicNumber:WithStdlibResolver.kt$StdLibItem.Companion$3</ID>
     <ID>MagicNumber:WithStdlibResolver.kt$StdLibItem.Companion$4</ID>
     <ID>MagicNumber:WithStdlibResolver.kt$StdLibItem.Companion$5</ID>
     <ID>MatchingDeclarationName:Main.kt$Args</ID>
+    <ID>MayBeConst:LoggingInputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
+    <ID>MayBeConst:LoggingOutputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
     <ID>NestedBlockDepth:Completions.kt$private fun completeMembers(file: CompiledFile, cursor: Int, receiverExpr: KtExpression, unwrapNullable: Boolean = false): Sequence&lt;DeclarationDescriptor&gt;</ID>
     <ID>NestedBlockDepth:KotlinWorkspaceService.kt$KotlinWorkspaceService$override fun didChangeWatchedFiles(params: DidChangeWatchedFilesParams)</ID>
     <ID>NestedBlockDepth:OverrideMembers.kt$private fun parametersMatch( function: KtNamedFunction, functionDescriptor: FunctionDescriptor ): Boolean</ID>
@@ -106,6 +129,7 @@
     <ID>ReturnCount:Hovers.kt$@OptIn(IDEAPluginsCompatibilityAPI::class) private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext): String?</ID>
     <ID>ReturnCount:Hovers.kt$fun processSourceJar(mapping: PackageSourceMapping): String?</ID>
     <ID>ReturnCount:Hovers.kt$private fun typeHoverAt(file: CompiledFile, cursor: Int): Hover?</ID>
+    <ID>ReturnCount:JDIDebuggee.kt$JDIDebuggee$private fun setBreakpointAtType(refType: ReferenceType, lineNumber: Long): Boolean</ID>
     <ID>ReturnCount:OverrideMembers.kt$private fun parametersMatch( function: KtNamedFunction, functionDescriptor: FunctionDescriptor ): Boolean</ID>
     <ID>ReturnCount:Parser.kt$SourceJarParser$fun findSourceFileInfo( sourcesJarPath: String, packageName: String, className: String ): SourceFileInfo?</ID>
     <ID>ReturnCount:Position.kt$fun location(declaration: DeclarationDescriptor): Location?</ID>
@@ -117,10 +141,16 @@
     <ID>SpreadOperator:Main.kt$(*argv)</ID>
     <ID>SwallowedException:AsyncExecutor.kt$AsyncExecutor$e: Exception</ID>
     <ID>SwallowedException:ClassContentProvider.kt$ClassContentProvider$e: FileNotFoundException</ID>
+    <ID>SwallowedException:JDIDebuggee.kt$JDIDebuggee$e: AbsentInformationException</ID>
+    <ID>SwallowedException:JDIDebuggee.kt$JDIDebuggee$e: VMDisconnectedException</ID>
+    <ID>SwallowedException:JDIDebuggee.kt$JDIDebuggee$exception: AbsentInformationException</ID>
+    <ID>SwallowedException:JDILocalScope.kt$JDILocalScope$e: AbsentInformationException</ID>
+    <ID>SwallowedException:JDILocalScope.kt$JDILocalScope$e: IllegalStateException</ID>
     <ID>SwallowedException:Position.kt$e: NullPointerException</ID>
     <ID>SwallowedException:SourceFiles.kt$SourceFiles$e: FileNotFoundException</ID>
     <ID>SwallowedException:SourceFiles.kt$SourceFiles$e: IOException</ID>
     <ID>SwallowedException:SymbolIndex.kt$SymbolIndex$e: IllegalStateException</ID>
+    <ID>ThrowingExceptionsWithoutMessageOrCause:VMEventBus.kt$VMEventBus$exception()</ID>
     <ID>TooGenericExceptionCaught:AsyncExecutor.kt$AsyncExecutor$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ClassPathResolver.kt$ClassPathResolver$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Compiler.kt$CompilationEnvironment$e: Exception</ID>
@@ -137,15 +167,19 @@
     <ID>TooManyFunctions:Compiler.kt$Compiler : Closeable</ID>
     <ID>TooManyFunctions:CompilerClassPath.kt$CompilerClassPath : Closeable</ID>
     <ID>TooManyFunctions:Completions.kt$org.javacs.kt.completion.Completions.kt</ID>
+    <ID>TooManyFunctions:DAPConverter.kt$DAPConverter</ID>
     <ID>TooManyFunctions:DelegatePrintStream.kt$DelegatePrintStream : PrintStream</ID>
     <ID>TooManyFunctions:ExtractSymbolKind.kt$ExtractSymbolKind : DeclarationDescriptorVisitor</ID>
     <ID>TooManyFunctions:ExtractSymbolVisibility.kt$ExtractSymbolVisibility : DeclarationDescriptorVisitor</ID>
     <ID>TooManyFunctions:FindReferences.kt$org.javacs.kt.references.FindReferences.kt</ID>
+    <ID>TooManyFunctions:JDILauncher.kt$JDILauncher : DebugLauncher</ID>
     <ID>TooManyFunctions:JavaElementConverter.kt$JavaElementConverter : JavaElementVisitor</ID>
     <ID>TooManyFunctions:JavaTypeConverter.kt$JavaTypeConverter : PsiTypeVisitor</ID>
+    <ID>TooManyFunctions:KotlinDebugAdapter.kt$KotlinDebugAdapter : IDebugProtocolServer</ID>
     <ID>TooManyFunctions:KotlinLanguageServer.kt$KotlinLanguageServer : LanguageServerLanguageClientAwareCloseable</ID>
     <ID>TooManyFunctions:KotlinTextDocumentService.kt$KotlinTextDocumentService : TextDocumentServiceCloseable</ID>
     <ID>TooManyFunctions:Logger.kt$Logger</ID>
+    <ID>TooManyFunctions:ObservableList.kt$ObservableList&lt;T&gt;</ID>
     <ID>TooManyFunctions:OverrideMembers.kt$org.javacs.kt.overridemembers.OverrideMembers.kt</ID>
     <ID>TooManyFunctions:RenderCompletionItem.kt$RenderCompletionItem : DeclarationDescriptorVisitor</ID>
     <ID>TooManyFunctions:SignatureHelp.kt$org.javacs.kt.signaturehelp.SignatureHelp.kt</ID>
@@ -157,12 +191,17 @@
     <ID>UnusedPrivateMember:Completions.kt$private fun empty(message: String): CompletionList</ID>
     <ID>UnusedPrivateMember:GradleClassPathResolver.kt$private val gradleErrorWherePattern by lazy { "\\*\\s+Where:[\r\n]+(\\S\\.*)".toRegex() }</ID>
     <ID>UnusedPrivateMember:Hovers.kt$private fun descriptorFqNameForClass(descriptor: ClassDescriptor?): String?</ID>
+    <ID>UnusedPrivateMember:JDILauncher.kt$JDILauncher$private fun urlDecode(arg: String?)</ID>
+    <ID>UnusedPrivateMember:JDILauncher.kt$JDILauncher$private fun urlEncode(arg: Collection&lt;String&gt;?)</ID>
+    <ID>UnusedPrivateMember:JDILauncher.kt$JDILauncher$private val attachTimeout: Int = 50</ID>
     <ID>UnusedPrivateMember:JavaElementConverter.kt$JavaElementConverter$private fun PsiCallExpression.translateTypeArguments(): String</ID>
     <ID>UnusedPrivateMember:KotlinTextDocumentService.kt$KotlinTextDocumentService$private val TextDocumentIdentifier.isKotlinScript: Boolean get() = uri.endsWith(".kts")</ID>
     <ID>UnusedPrivateMember:KotlinTextDocumentService.kt$KotlinTextDocumentService$private val uriContentProvider: URIContentProvider</ID>
     <ID>UnusedPrivateMember:Logger.kt$Logger$private val newline = System.lineSeparator()</ID>
+    <ID>UnusedPrivateMember:LoggingOutputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
     <ID>UnusedPrivateMember:Parser.kt$SourceJarParser$packageName: String</ID>
     <ID>UnusedPrivateMember:SourceFiles.kt$i</ID>
+    <ID>VariableNaming:VMEventBus.kt$VMEventBus$val VMEvent = VMEvent(event, eventSet)</ID>
     <ID>WildcardImport:AddMissingImportsQuickFix.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:CodeAction.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:CompiledFile.kt$import org.javacs.kt.compiler.*</ID>
@@ -188,6 +227,7 @@
     <ID>WildcardImport:JavaElementConverter.kt$import com.intellij.psi.*</ID>
     <ID>WildcardImport:JavaElementConverter.kt$import com.intellij.psi.javadoc.*</ID>
     <ID>WildcardImport:JavaTypeConverter.kt$import com.intellij.psi.*</ID>
+    <ID>WildcardImport:KotlinDebugAdapter.kt$import org.eclipse.lsp4j.debug.*</ID>
     <ID>WildcardImport:KotlinLanguageServer.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:KotlinLanguageServer.kt$import org.javacs.kt.externalsources.*</ID>
     <ID>WildcardImport:KotlinProtocolExtensionService.kt$import org.eclipse.lsp4j.*</ID>
