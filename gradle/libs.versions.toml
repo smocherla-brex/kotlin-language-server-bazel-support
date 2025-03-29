@@ -51,7 +51,7 @@ com-google-code-gson = { group = "com.google.code.gson", name = "gson", version.
 org-jetbrains-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin",version.ref = "kotlinVersion" }
 
 com-google-protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version = "3.18.2"}
-com-google-protobuf-java-util = {group = "com.google.protobuf", name = "protobuf-java-util", version = "3.18.2"}
+com-google-protobuf-java-util = {group = "com.google.protobuf", name = "protobuf-java-util", version = "4.30.2"}
 org-eclipse-lsp4j-org-eclipse-lsp4j-debug = {group = "org.eclipse.lsp4j", name = "org.eclipse.lsp4j.debug", version = "0.15.0"}
 
 [plugins]
