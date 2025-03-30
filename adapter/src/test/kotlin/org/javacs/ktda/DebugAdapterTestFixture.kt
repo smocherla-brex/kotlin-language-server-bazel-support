@@ -51,8 +51,10 @@ abstract class DebugAdapterTestFixture(
     fun launch() {
         println("Launching...")
         debugAdapter.launch(mapOf(
-            "projectRoot" to absoluteWorkspaceRoot.toString(),
+            "workspaceRoot" to absoluteWorkspaceRoot.toString(),
+            "bazelTarget" to "//foo/bar",
             "mainClass" to mainClass,
+            "buildArgs" to listOf<String>(),
             "vmArguments" to vmArguments
         )).join()
         println("Launched")

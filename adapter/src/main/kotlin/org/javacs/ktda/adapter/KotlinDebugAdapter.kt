@@ -41,18 +41,18 @@ class KotlinDebugAdapter(
 	private val launcherAsync = AsyncExecutor()
 	private val stdoutAsync = AsyncExecutor()
 	private val stderrAsync = AsyncExecutor()
-	
+
 	private var debuggee: Debuggee? = null
 	private var client: IDebugProtocolClient? = null
 	private var converter = DAPConverter()
 	private val context = DebugContext()
 
 	private val exceptionsPool = ObjectPool<Long, DebuggeeException>() // Contains exceptions thrown by the debuggee owned by thread ids
-	
+
 	// TODO: This is a workaround for https://github.com/eclipse/lsp4j/issues/229
 	// For more information, see launch() method
 	private var configurationDoneResponse: CompletableFuture<Void>? = null
-	
+
 	override fun initialize(args: InitializeRequestArguments): CompletableFuture<Capabilities> = async.compute {
 		converter.lineConverter = LineNumberConverter(
 			externalLineOffset = if (args.linesStartAt1) 0 else -1
@@ -60,7 +60,7 @@ class KotlinDebugAdapter(
 		converter.columnConverter = LineNumberConverter(
 			externalLineOffset = if (args.columnsStartAt1) 0 else -1
 		)
-		
+
 		val capabilities = Capabilities()
 		capabilities.supportsConfigurationDoneRequest = true
 		capabilities.supportsCompletionsRequest = true
@@ -68,18 +68,18 @@ class KotlinDebugAdapter(
 		capabilities.exceptionBreakpointFilters = ExceptionBreakpoint.values()
 			.map(converter::toDAPExceptionBreakpointsFilter)
 			.toTypedArray()
-		
+
 		LOG.trace("Returning capabilities...")
 		capabilities
 	}
-	
+
 	fun connect(client: IDebugProtocolClient) {
 		connectLoggingBackend(client)
 		this.client = client
 		client.initialized()
 		LOG.info("Connected to client")
 	}
-	
+
 	override fun configurationDone(args: ConfigurationDoneArguments?): CompletableFuture<Void> {
 		LOG.trace("Got configurationDone request")
 		val response = CompletableFuture<Void>()
@@ -90,8 +90,14 @@ class KotlinDebugAdapter(
 	override fun launch(args: Map<String, Any>) = launcherAsync.execute {
 		performInitialization()
 
-		val projectRoot = (args["projectRoot"] as? String)?.let { Paths.get(it) }
-			?: throw missingRequestArgument("launch", "projectRoot")
+		val workspaceRoot = (args["workspaceRoot"] as? String)?.let { Paths.get(it) }
+			?: throw missingRequestArgument("launch", "workspaceRoot")
+
+        val bazelTarget = (args["bazelTarget"] as? String)
+            ?: throw missingRequestArgument("launch", "bazelTarget")
+
+        val buildArgs = (args["buildArgs"] as? List<*>)
+            ?: throw missingRequestArgument("launch", "buildArgs")
 
 		val mainClass = (args["mainClass"] as? String)
 			?: throw missingRequestArgument("launch", "mainClass")
@@ -100,10 +106,14 @@ class KotlinDebugAdapter(
 
 		setupCommonInitializationParams(args)
 
+        val classpathResolver = debugClassPathResolver(listOf(workspaceRoot))
+
 		val config = LaunchConfiguration(
-			debugClassPathResolver(listOf(projectRoot)).classpathOrEmpty.map { it.compiledJar }.toSet(),
+			classpathResolver.classpathOrEmpty.map { it.compiledJar }.toSet(),
 			mainClass,
-			projectRoot,
+            bazelTarget,
+            buildArgs.filterIsInstance<String>(),
+			workspaceRoot,
 			vmArguments
 		)
 		debuggee = launcher.launch(
@@ -112,23 +122,23 @@ class KotlinDebugAdapter(
 		).also(::setupDebuggeeListeners)
 		LOG.trace("Instantiated debuggee")
 	}
-	
+
 	private fun missingRequestArgument(requestName: String, argumentName: String) =
 		KotlinDAException("Sent $requestName to debug adapter without the required argument'$argumentName'")
-	
+
 	private fun performInitialization() {
 		client!!.initialized()
-		
+
 		// Wait for configurationDone response to fully return
 		// as sketched in https://github.com/Microsoft/vscode/issues/4902#issuecomment-368583522
 		// TODO: Find a cleaner solution once https://github.com/eclipse/lsp4j/issues/229 is resolved
 		// (LSP4J does currently not provide a mechanism to hook into the request/response machinery)
-		
+
 		LOG.trace("Waiting for configurationDoneResponse")
 		waitFor("configuration done response") { (configurationDoneResponse?.numberOfDependents ?: 0) != 0 }
 		LOG.trace("Done waiting for configurationDoneResponse")
 	}
-	
+
 	private fun setupDebuggeeListeners(debuggee: Debuggee) {
 		val eventBus = debuggee.eventBus
 		eventBus.exitListeners.add {
@@ -156,7 +166,7 @@ class KotlinDebugAdapter(
 		}
 		LOG.trace("Configured debuggee listeners")
 	}
-	
+
 	private fun pipeStreamToOutput(stream: InputStream, outputCategory: String) {
 		stream.bufferedReader().use {
 			var line = it.readLine()
@@ -176,14 +186,14 @@ class KotlinDebugAdapter(
 			it.threadId = threadId.toInt()
 		})
 	}
-	
+
 	private fun sendStopEvent(threadId: Long, reason: String) {
 		client!!.stopped(StoppedEventArguments().also {
 			it.reason = reason
 			it.threadId = threadId.toInt()
 		})
 	}
-	
+
 	private fun sendExitEvent(exitCode: Long) {
 		client!!.exited(ExitedEventArguments().also {
 			it.exitCode = exitCode.toInt()
@@ -194,21 +204,21 @@ class KotlinDebugAdapter(
 
 	override fun attach(args: Map<String, Any>) = launcherAsync.execute {
 		performInitialization()
-		
+
 		val projectRoot = (args["projectRoot"] as? String)?.let { Paths.get(it) }
 			?: throw missingRequestArgument("attach", "projectRoot")
-		
+
 		val hostName = (args["hostName"] as? String)
 			?: throw missingRequestArgument("attach", "hostName")
-		
+
 		val port = (args["port"] as? Double)?.toInt()
 			?: throw missingRequestArgument("attach", "port")
-		
+
 		val timeout = (args["timeout"] as? Double)?.toInt()
 			?: throw missingRequestArgument("attach", "timeout")
-		
+
 		setupCommonInitializationParams(args)
-		
+
 		debuggee = launcher.attach(
 			AttachConfiguration(projectRoot, hostName, port, timeout),
 			context
@@ -220,44 +230,44 @@ class KotlinDebugAdapter(
 			sendThreadEvent(thread.id, ThreadEventArgumentsReason.STARTED)
 		}
 	}
-	
+
 	private fun setupCommonInitializationParams(args: Map<String, Any>) {
 		val logLevel = (args["logLevel"] as? String)?.let(LogLevel::valueOf)
 			?: LogLevel.INFO
-		
+
 		LOG.level = logLevel
 
 		connectJsonLoggingBackend(args)
 	}
-	
+
 	private fun connectJsonLoggingBackend(args: Map<String, Any>) {
 		val enableJsonLogging = (args["enableJsonLogging"] as? Boolean) ?: false
-		
+
 		if (enableJsonLogging) {
 			val jsonLogFile = (args["jsonLogFile"] as? String)?.let(::File)
 				?: throw missingRequestArgument("launch/attach", "jsonLogFile")
 			val newline = System.lineSeparator()
-			
+
 			if (!jsonLogFile.exists()) {
 				jsonLogFile.createNewFile()
 			}
-			
+
 			JSON_LOG.connectOutputBackend { msg -> jsonLogFile.appendText("[${msg.level}] ${msg.message}$newline") }
 			JSON_LOG.connectErrorBackend { msg -> jsonLogFile.appendText("Error: [${msg.level}] ${msg.message}$newline") }
 		}
 	}
-	
+
 	override fun restart(args: RestartArguments): CompletableFuture<Void> = notImplementedDAPMethod()
-	
+
 	override fun disconnect(args: DisconnectArguments) = async.execute {
 		debuggee?.exit()
 	}
-	
+
 	override fun setBreakpoints(args: SetBreakpointsArguments) = async.compute {
 		LOG.debug("{} breakpoints found", args.breakpoints.size)
-		
+
 		// TODO: Support logpoints and conditional breakpoints
-		
+
 		val placedBreakpoints = context
 			.breakpointManager
 			.setAllIn(
@@ -266,14 +276,14 @@ class KotlinDebugAdapter(
 			)
 			.map(converter::toDAPBreakpoint)
 			.toTypedArray()
-		
+
 		SetBreakpointsResponse().apply {
 			breakpoints = placedBreakpoints
 		}
 	}
-	
+
 	override fun setFunctionBreakpoints(args: SetFunctionBreakpointsArguments): CompletableFuture<SetFunctionBreakpointsResponse> = notImplementedDAPMethod()
-	
+
 	override fun setExceptionBreakpoints(args: SetExceptionBreakpointsArguments) = async.compute {
 		val internalBreakpoints = args.filters
 			.map(converter::toInternalExceptionBreakpoint)
@@ -284,7 +294,7 @@ class KotlinDebugAdapter(
 			breakpoints = internalBreakpoints.map(converter::toDAPBreakpoint).toTypedArray()
 		}
 	}
-	
+
 	override fun continue_(args: ContinueArguments) = async.compute {
 		var success = debuggee!!.threadByID(args.threadId.toLong())?.resume() ?: false
 		var allThreads = false
@@ -305,27 +315,27 @@ class KotlinDebugAdapter(
 			allThreadsContinued = allThreads
 		}
 	}
-	
+
 	override fun next(args: NextArguments) = async.execute {
 		debuggee!!.threadByID(args.threadId.toLong())?.stepOver()
 	}
-	
+
 	override fun stepIn(args: StepInArguments) = async.execute {
 		debuggee!!.threadByID(args.threadId.toLong())?.stepInto()
 	}
-	
+
 	override fun stepOut(args: StepOutArguments) = async.execute {
 		debuggee!!.threadByID(args.threadId.toLong())?.stepOut()
 	}
-	
+
 	override fun stepBack(args: StepBackArguments): CompletableFuture<Void> = notImplementedDAPMethod()
-	
+
 	override fun reverseContinue(args: ReverseContinueArguments): CompletableFuture<Void> = notImplementedDAPMethod()
-	
+
 	override fun restartFrame(args: RestartFrameArguments): CompletableFuture<Void> = notImplementedDAPMethod()
-	
+
 	override fun goto_(args: GotoArguments): CompletableFuture<Void> = notImplementedDAPMethod()
-	
+
 	override fun pause(args: PauseArguments) = async.execute {
 		val threadId = args.threadId
 		val success = debuggee!!.threadByID(threadId.toLong())?.pause()
@@ -336,12 +346,12 @@ class KotlinDebugAdapter(
 			)
 		}
 	}
-	
+
 	/*
 	 * Stack traces, scopes and variables are computed synchronously
 	 * to avoid race conditions when fetching elements from the pools
 	 */
-	
+
 	override fun stackTrace(args: StackTraceArguments): CompletableFuture<StackTraceResponse> {
 		val threadId = args.threadId
 		return completedFuture(StackTraceResponse().apply {
@@ -354,7 +364,7 @@ class KotlinDebugAdapter(
 				.orEmpty()
 		})
 	}
-	
+
 	override fun scopes(args: ScopesArguments) = completedFuture(
 		ScopesResponse().apply {
 			scopes = (converter.toInternalStackFrame(args.frameId.toLong())
@@ -364,7 +374,7 @@ class KotlinDebugAdapter(
 				.toTypedArray()
 		}
 	)
-	
+
 	override fun variables(args: VariablesArguments) = completedFuture(
 		VariablesResponse().apply {
 			variables = (args.variablesReference
@@ -377,11 +387,11 @@ class KotlinDebugAdapter(
 				.orEmpty()
 		}
 	)
-	
+
 	override fun setVariable(args: SetVariableArguments): CompletableFuture<SetVariableResponse> = notImplementedDAPMethod()
-	
+
 	override fun source(args: SourceArguments): CompletableFuture<SourceResponse> = notImplementedDAPMethod()
-	
+
 	override fun threads() = async.compute { onceDebuggeeIsPresent { debuggee ->
 		debuggee.updateThreads()
 		ThreadsResponse().apply {
@@ -392,11 +402,11 @@ class KotlinDebugAdapter(
 				.toTypedArray()
 		}
 	} }
-	
+
 	override fun modules(args: ModulesArguments): CompletableFuture<ModulesResponse> = notImplementedDAPMethod()
-	
+
 	override fun loadedSources(args: LoadedSourcesArguments): CompletableFuture<LoadedSourcesResponse> = notImplementedDAPMethod()
-	
+
 	override fun evaluate(args: EvaluateArguments): CompletableFuture<EvaluateResponse> = async.compute {
 		val variable = (args.frameId
 			.toLong()
@@ -410,11 +420,11 @@ class KotlinDebugAdapter(
 			variablesReference = variable?.variablesReference ?: 0
 		}
 	}
-	
+
 	override fun stepInTargets(args: StepInTargetsArguments): CompletableFuture<StepInTargetsResponse> = notImplementedDAPMethod()
-	
+
 	override fun gotoTargets(args: GotoTargetsArguments): CompletableFuture<GotoTargetsResponse> = notImplementedDAPMethod()
-	
+
 	override fun completions(args: CompletionsArguments): CompletableFuture<CompletionsResponse> = async.compute {
 		CompletionsResponse().apply {
 			targets = (args.frameId
@@ -426,7 +436,7 @@ class KotlinDebugAdapter(
 				.toTypedArray()
 		}
 	}
-	
+
 	override fun exceptionInfo(args: ExceptionInfoArguments): CompletableFuture<ExceptionInfoResponse> = async.compute {
 		val id = exceptionsPool.getIDsOwnedBy(args.threadId.toLong()).firstOrNull()
 		val exception = id?.let { exceptionsPool.getByID(it) }
@@ -437,7 +447,7 @@ class KotlinDebugAdapter(
 			details = exception?.let(converter::toDAPExceptionDetails)
 		}
 	}
-	
+
 	private fun connectLoggingBackend(client: IDebugProtocolClient) {
 		val backend: (LogMessage) -> Unit = {
 			client.output(OutputEventArguments().apply {
@@ -448,12 +458,12 @@ class KotlinDebugAdapter(
 		LOG.connectOutputBackend(backend)
 		LOG.connectErrorBackend(backend)
 	}
-	
+
 	private inline fun <T> onceDebuggeeIsPresent(body: (Debuggee) -> T): T {
 		waitFor("debuggee") { debuggee != null }
 		return body(debuggee!!)
 	}
-	
+
 	private fun <T> notImplementedDAPMethod(): CompletableFuture<T> {
 		TODO("not implemented yet")
 	}

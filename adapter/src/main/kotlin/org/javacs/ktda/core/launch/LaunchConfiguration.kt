@@ -5,6 +5,8 @@ import java.nio.file.Path
 class LaunchConfiguration(
 	val classpath: Set<Path>,
 	val mainClass: String,
-	val projectRoot: Path,
+    val bazelTarget: String,
+    val buildArgs: List<String>,
+	val workspaceRoot: Path,
 	val vmArguments: String = ""
 )

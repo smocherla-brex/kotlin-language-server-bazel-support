@@ -33,6 +33,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:0.37.3")
     implementation("org.jetbrains.exposed:exposed-dao:0.37.3")
 
+    implementation(libs.com.google.protobuf.java)
+
 
 	testImplementation("junit:junit:4.12")
 	testImplementation("org.hamcrest:hamcrest-all:1.3")
