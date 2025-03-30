@@ -28,6 +28,6 @@ jobs:
         with:
           cache-disabled: ${{ contains(matrix.os, 'windows') }}
       - name: Build
-        run: ./gradlew :server:build :shared:build -PjavaVersion=${{ matrix.java }}
+        run: ./gradlew :server:build :shared:build :adapter:build -PjavaVersion=${{ matrix.java }}
       - name: Detekt
         run: ./gradlew detekt -PjavaVersion=${{ matrix.java }}
