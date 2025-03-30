@@ -44,6 +44,11 @@ class JDIDebuggee(
 	private var breakpointSubscriptions = SubscriptionBag()
 
 	init {
+        // For some reason, on Ubuntu we have to explicitly suspend
+        // the vm so that we can set breakpoints, otherwise there's
+        // a race condition where classes get loaded and run before the
+        // breakpoints are set
+        vm.suspend()
 		eventBus = VMEventBus(vm)
 
 		val process = vm.process()
@@ -56,6 +61,9 @@ class JDIDebuggee(
 
 		LOG.trace("Updating breakpoints")
 		hookBreakpoints()
+
+        // Now that breakpoints are wired, resume the VM
+        vm.resume()
 	}
 
 	override fun updateThreads() {

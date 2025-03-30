@@ -10,9 +10,9 @@ import org.eclipse.lsp4j.debug.services.IDebugProtocolClient
 import org.javacs.ktda.adapter.KotlinDebugAdapter
 import org.javacs.ktda.jdi.launch.JDILauncher
 import org.junit.After
-import org.junit.Assert.assertThat
 import org.junit.Before
-import org.hamcrest.Matchers.equalTo
+import org.javacs.ktda.builder.BuildService
+import java.util.concurrent.CompletableFuture
 
 abstract class DebugAdapterTestFixture(
     relativeWorkspaceRoot: String,
@@ -22,10 +22,18 @@ abstract class DebugAdapterTestFixture(
     val absoluteWorkspaceRoot: Path = Paths.get(DebugAdapterTestFixture::class.java.getResource("/bazel/WORKSPACE").toURI()).parent.resolve(relativeWorkspaceRoot)
     lateinit var debugAdapter: KotlinDebugAdapter
 
+    class MockBuildService : BuildService {
+        override fun build(workspaceRoot: Path, targets: List<String>, args: List<String>): CompletableFuture<Void> {
+            return CompletableFuture.completedFuture(null)
+        }
+    }
+
     @Before fun startDebugAdapter() {
 
         debugAdapter = JDILauncher()
-            .let(::KotlinDebugAdapter)
+            .let{
+                KotlinDebugAdapter(it, MockBuildService())
+            }
             .also {
                 it.connect(this)
                 val configDone = it.configurationDone(ConfigurationDoneArguments())
