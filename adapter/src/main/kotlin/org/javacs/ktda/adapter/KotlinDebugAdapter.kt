@@ -98,11 +98,8 @@ class KotlinDebugAdapter(
 
 		val vmArguments = (args["vmArguments"] as? String) ?: ""
 
-        try {
-            builder.build(workspaceRoot, listOf(bazelTarget), buildArgs.filterIsInstance<String>()).get()
-        } catch (e: RuntimeException) {
-            throw KotlinDAException("Error running bazel build: ${e.message}")
-        }
+        // we need to build the targets first to make sure the classpath is available
+        builder.build(workspaceRoot, listOf(bazelTarget), buildArgs.filterIsInstance<String>()).get()
 
 		setupCommonInitializationParams(args)
 

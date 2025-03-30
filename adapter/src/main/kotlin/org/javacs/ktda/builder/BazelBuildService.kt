@@ -1,6 +1,10 @@
 package org.javacs.ktda.builder
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.javacs.kt.LOG
 import java.io.BufferedReader
 import java.io.InputStream
@@ -36,6 +40,7 @@ class BazelBuildService: BuildService {
         return future
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun streamLineByLine(inputStream: InputStream, category: String) {
         withContext(Dispatchers.IO) {
             try {
