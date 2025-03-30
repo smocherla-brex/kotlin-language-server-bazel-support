@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets
 
 class JDIDebuggee(
 	private val vm: VirtualMachine,
-	private val sourcesRoots: Set<Path>,
+	private val sourceFiles: Set<Path>,
 	private val context: DebugContext
 ) : Debuggee, JDISessionContext {
 	override var threads = emptyList<DebuggeeThread>()
@@ -172,10 +172,9 @@ class JDIDebuggee(
             val sourcePath = location.sourcePath()
             val sourceName = location.sourceName()
 
-            sourcesRoots
+            sourceFiles
                 .asSequence()
                 .map { it.resolve(sourcePath) }
-                .orEmpty()
                 .mapNotNull { findValidKtFilePath(it, sourceName) }
                 .firstOrNull()
                 ?.let { Source(

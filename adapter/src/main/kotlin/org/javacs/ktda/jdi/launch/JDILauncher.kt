@@ -7,6 +7,8 @@ import com.sun.jdi.connect.AttachingConnector
 import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.LaunchingConnector
 import org.javacs.kt.LOG
+import org.javacs.kt.classpath.PackageSourceMapping
+import org.javacs.kt.proto.LspInfo
 import org.javacs.ktda.core.DebugContext
 import org.javacs.ktda.core.launch.AttachConfiguration
 import org.javacs.ktda.core.launch.DebugLauncher
@@ -17,9 +19,13 @@ import java.io.File
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.stream.Collectors
+import kotlin.io.path.exists
+import kotlin.io.path.isRegularFile
 
 class JDILauncher(
 	private val attachTimeout: Int = 50,
@@ -37,9 +43,8 @@ class JDILauncher(
 		val vm = connector.launch(createLaunchArgs(config, connector)) ?: throw KotlinDAException("Could not launch a new VM")
 
 		LOG.debug("Finding sourcesRoots")
-		val sourcesRoots = sourcesRootsOf(config.projectRoot)
 
-		return JDIDebuggee(vm, sourcesRoots, context)
+		return JDIDebuggee(vm, sourceFiles(config.workspaceRoot), context)
 	}
 
 	override fun attach(config: AttachConfiguration, context: DebugContext): JDIDebuggee {
@@ -47,7 +52,7 @@ class JDILauncher(
 		LOG.info("Attaching JVM debug session on {}:{}", config.hostName, config.port)
 		return JDIDebuggee(
 			connector.attach(createAttachArgs(config, connector)) ?: throw KotlinDAException("Could not attach the VM"),
-			sourcesRootsOf(config.projectRoot),
+			sourceFiles(config.workspaceRoot),
 			context
 		)
 	}
@@ -75,17 +80,6 @@ class JDILauncher(
 		.let { it.find { it.javaClass.name == "com.sun.tools.jdi.SunCommandLineLauncher" } ?: it.firstOrNull() }
 		?: throw KotlinDAException("Could not find a launching connector (for a new debuggee VM)")
 
-	private fun sourcesRootsOf(projectRoot: Path): Set<Path> =
-			Files.walk(projectRoot, 2) // root project and submodule
-					.filter { Files.isDirectory(it) }
-					.map { it.resolve("src") }
-					.filter { Files.isDirectory(it) }
-					.flatMap(Files::list) // main, test
-					.filter { Files.isDirectory(it) }
-					.flatMap(Files::list) // kotlin, java
-					.filter { Files.isDirectory(it) }
-					.collect(Collectors.toSet())
-
 	private fun formatOptions(config: LaunchConfiguration): String {
 		var options = config.vmArguments
 		modulePaths?.let { options += " --module-path \"$modulePaths\"" }
@@ -100,6 +94,21 @@ class JDILauncher(
 			"-m ${config.mainClass}"
 		} else config.mainClass
 	}
+
+    private fun sourceFiles(workspaceRoot: Path): Set<Path> {
+        val bazelOut = workspaceRoot.resolve("bazel-out")
+        if(!bazelOut.exists()) return emptySet()
+
+        return Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
+            paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("kotlin-lsp.json") }
+                .map { path: Path -> LspInfo.fromJson(path) }
+                .map { it.sourceFilesList }
+                .collect(Collectors.toList())
+                .flatten()
+                .map { Paths.get(it.path) }
+                .toSet()
+        }
+    }
 
 	private fun formatClasspath(config: LaunchConfiguration): String = config.classpath
 		.map { it.toAbsolutePath().toString() }
