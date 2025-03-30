@@ -15,6 +15,8 @@ import org.javacs.kt.LOG
 import org.javacs.kt.LogLevel
 import org.javacs.kt.LogMessage
 import org.javacs.kt.util.AsyncExecutor
+import org.javacs.ktda.build.BazelBuildService
+import org.javacs.ktda.build.BuildService
 import org.javacs.ktda.util.JSON_LOG
 import org.javacs.ktda.util.KotlinDAException
 import org.javacs.ktda.util.ObjectPool
@@ -35,7 +37,8 @@ import org.javacs.ktda.classpath.findValidKtFilePath
 
 /** The debug server interface conforming to the Debug Adapter Protocol */
 class KotlinDebugAdapter(
-	private val launcher: DebugLauncher
+	private val launcher: DebugLauncher,
+    private val builder: BuildService,
 ) : IDebugProtocolServer {
 	private val async = AsyncExecutor()
 	private val launcherAsync = AsyncExecutor()
@@ -103,6 +106,12 @@ class KotlinDebugAdapter(
 			?: throw missingRequestArgument("launch", "mainClass")
 
 		val vmArguments = (args["vmArguments"] as? String) ?: ""
+
+        try {
+            builder.build(workspaceRoot, listOf(bazelTarget), buildArgs.filterIsInstance<String>()).get()
+        } catch (e: RuntimeException) {
+            throw KotlinDAException("Error running bazel build: ${e.message}")
+        }
 
 		setupCommonInitializationParams(args)
 
