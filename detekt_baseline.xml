@@ -126,6 +126,7 @@
     <ID>ReturnCount:FindDoc.kt$fun findDoc(declaration: DeclarationDescriptorWithSource): KDocTag?</ID>
     <ID>ReturnCount:FindReferences.kt$private fun possibleReferences(declaration: DeclarationDescriptor, sp: SourcePath): Set&lt;KtFile&gt;</ID>
     <ID>ReturnCount:GoToDefinition.kt$fun processJarEntry(packageSourceMapping: PackageSourceMapping): Location?</ID>
+    <ID>ReturnCount:GoToDefinition.kt$private fun findLocation( workspaceRoot: Path, sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler, tempDir: TemporaryDirectory ): Location?</ID>
     <ID>ReturnCount:Hovers.kt$@OptIn(IDEAPluginsCompatibilityAPI::class) private fun renderTypeOf(element: KtExpression, bindingContext: BindingContext): String?</ID>
     <ID>ReturnCount:Hovers.kt$fun processSourceJar(mapping: PackageSourceMapping): String?</ID>
     <ID>ReturnCount:Hovers.kt$private fun typeHoverAt(file: CompiledFile, cursor: Int): Hover?</ID>

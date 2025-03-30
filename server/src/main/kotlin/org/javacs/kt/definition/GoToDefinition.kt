@@ -98,7 +98,7 @@ private fun findLocation(
     val range = compiler.findDeclarationRange(
         sourceFileInfo.contents,
         declarationName = symbolName,
-    )
+    ) ?: return null
 
     return when {
         // Need a better way to do this - this is to ensure we try to
