@@ -10,10 +10,8 @@ import org.eclipse.lsp4j.debug.services.IDebugProtocolClient
 import org.javacs.ktda.adapter.KotlinDebugAdapter
 import org.javacs.ktda.jdi.launch.JDILauncher
 import org.junit.After
-import org.junit.Assert.assertThat
 import org.junit.Before
-import org.hamcrest.Matchers.equalTo
-import org.javacs.ktda.build.BuildService
+import org.javacs.ktda.builder.BuildService
 import java.util.concurrent.CompletableFuture
 
 abstract class DebugAdapterTestFixture(

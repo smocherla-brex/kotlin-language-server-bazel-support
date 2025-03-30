@@ -7,7 +7,6 @@ import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.LaunchingConnector
 import org.javacs.kt.LOG
 import org.javacs.kt.proto.LspInfo
-import org.javacs.ktda.build.BuildService
 import org.javacs.ktda.core.DebugContext
 import org.javacs.ktda.core.launch.AttachConfiguration
 import org.javacs.ktda.core.launch.DebugLauncher

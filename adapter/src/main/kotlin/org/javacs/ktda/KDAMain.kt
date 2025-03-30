@@ -9,9 +9,7 @@ import org.javacs.ktda.jdi.launch.JDILauncher
 import org.javacs.ktda.util.LoggingInputStream
 import org.javacs.ktda.util.LoggingOutputStream
 import org.eclipse.lsp4j.debug.launch.DSPLauncher
-import org.eclipse.lsp4j.debug.services.IDebugProtocolClient
-import org.eclipse.lsp4j.debug.TerminatedEventArguments
-import org.javacs.ktda.build.BazelBuildService
+import org.javacs.ktda.builder.BazelBuildService
 
 /** Enable logging of raw input JSON messages (if it is enabled in the user's debug configuration). */
 private const val JSON_IN_LOGGING = true

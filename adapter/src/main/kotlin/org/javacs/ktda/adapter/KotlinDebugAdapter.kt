@@ -4,19 +4,15 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.io.InputStream
 import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.ThreadLocalRandom
 import org.eclipse.lsp4j.debug.*
-import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 import org.eclipse.lsp4j.debug.services.IDebugProtocolServer
 import org.eclipse.lsp4j.debug.services.IDebugProtocolClient
 import org.javacs.kt.LOG
 import org.javacs.kt.LogLevel
 import org.javacs.kt.LogMessage
 import org.javacs.kt.util.AsyncExecutor
-import org.javacs.ktda.build.BazelBuildService
-import org.javacs.ktda.build.BuildService
+import org.javacs.ktda.builder.BuildService
 import org.javacs.ktda.util.JSON_LOG
 import org.javacs.ktda.util.KotlinDAException
 import org.javacs.ktda.util.ObjectPool
@@ -24,16 +20,11 @@ import org.javacs.ktda.util.waitFor
 import org.javacs.ktda.core.Debuggee
 import org.javacs.ktda.core.DebugContext
 import org.javacs.ktda.core.exception.DebuggeeException
-import org.javacs.ktda.core.event.DebuggeeEventBus
-import org.javacs.ktda.core.event.BreakpointStopEvent
-import org.javacs.ktda.core.event.StepStopEvent
-import org.javacs.ktda.core.stack.StackFrame
 import org.javacs.ktda.core.launch.DebugLauncher
 import org.javacs.ktda.core.launch.LaunchConfiguration
 import org.javacs.ktda.core.launch.AttachConfiguration
 import org.javacs.ktda.core.breakpoint.ExceptionBreakpoint
 import org.javacs.ktda.classpath.debugClassPathResolver
-import org.javacs.ktda.classpath.findValidKtFilePath
 
 /** The debug server interface conforming to the Debug Adapter Protocol */
 class KotlinDebugAdapter(
