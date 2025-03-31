@@ -11,7 +11,6 @@ message KotlinLspBazelTargetInfo {
     // The bazel target label
     string bazel_target = 2;
 
-
     // One or more classpath entries, this only includes the direct compile/source jar for the target
     // and not all its transitive dependencies. this is to avoid bloating this proto file
     repeated ClassPathEntry classpath = 3;
@@ -34,6 +33,11 @@ message PackageSourceMapping {
 message SourceFile {
     // relative path to the source file contained in a target
     string path = 1;
+
+    // one or more JVM names for the classes in this file
+    // this is to allow the debugger to set the breakpoints using JDI which
+    // requires class filters with JVM names
+    repeated string jvm_class_names = 2;
 }
 
 message ClassPathEntry {
@@ -46,4 +50,3 @@ message ClassPathEntry {
     // The path to the source jar relative to the workspace
     optional string source_jar = 2;
 }
-
