@@ -42,7 +42,7 @@ class JDILauncher(
 
 		LOG.debug("Finding sourcesRoots")
 
-		return JDIDebuggee(vm, sourceFiles(config.workspaceRoot), context)
+		return JDIDebuggee(vm, sourceFiles(config.workspaceRoot), context, config.sourcesJVMClassNames, config.workspaceRoot)
 	}
 
 	override fun attach(config: AttachConfiguration, context: DebugContext): JDIDebuggee {
@@ -51,7 +51,9 @@ class JDILauncher(
 		return JDIDebuggee(
 			connector.attach(createAttachArgs(config, connector)) ?: throw KotlinDAException("Could not attach the VM"),
 			sourceFiles(config.workspaceRoot),
-			context
+			context,
+            config.sourcesJVMClassNames,
+            config.workspaceRoot
 		)
 	}
 

@@ -5,12 +5,9 @@ import org.javacs.ktda.core.DebuggeeThread
 import org.javacs.ktda.core.DebugContext
 import org.javacs.ktda.core.Position
 import org.javacs.ktda.core.Source
-import org.javacs.ktda.core.launch.LaunchConfiguration
-import org.javacs.ktda.core.event.DebuggeeEventBus
 import org.javacs.ktda.core.breakpoint.Breakpoint
 import org.javacs.ktda.core.breakpoint.ExceptionBreakpoint
 import org.javacs.kt.LOG
-import org.javacs.ktda.util.ObservableList
 import org.javacs.ktda.util.SubscriptionBag
 import org.javacs.ktda.classpath.findValidKtFilePath
 import org.javacs.ktda.classpath.toJVMClassNames
@@ -22,17 +19,19 @@ import com.sun.jdi.VMDisconnectedException
 import com.sun.jdi.event.ClassPrepareEvent
 import com.sun.jdi.request.EventRequest
 import com.sun.jdi.AbsentInformationException
+import org.javacs.kt.classpath.SourceJVMClassNames
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.charset.StandardCharsets
 
 class JDIDebuggee(
 	private val vm: VirtualMachine,
 	private val sourceFiles: Set<Path>,
-	private val context: DebugContext
+	private val context: DebugContext,
+    private val sourcesJvmClassNames: Set<SourceJVMClassNames>,
+    private val workspaceRoot: Path,
 ) : Debuggee, JDISessionContext {
 	override var threads = emptyList<DebuggeeThread>()
 	override val eventBus: VMEventBus
@@ -107,14 +106,14 @@ class JDIDebuggee(
 	private fun setBreakpoint(filePath: String, lineNumber: Long) {
 		val eventRequestManager = vm.eventRequestManager()
 
-		toJVMClassNames(filePath)
+		toJVMClassNames(workspaceRoot, filePath, sourcesJvmClassNames)
 			?.forEach { className ->
 				// Try setting breakpoint using a ClassPrepareRequest
 
 				for (name in listOf(className, "$className$*")) { // For local types
 					val request = eventRequestManager
 						.createClassPrepareRequest()
-						.apply { addClassFilter("bazel.lsp_fixtures.App") }
+						.apply { addClassFilter(className) }
 
 					breakpointSubscriptions.add(eventBus.subscribe(ClassPrepareEvent::class) {
 						if (it.jdiEvent.request() == request) {

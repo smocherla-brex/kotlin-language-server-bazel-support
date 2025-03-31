@@ -12,3 +12,8 @@ data class PackageSourceMapping(
     val sourcePackage: String,
     val sourceJar: Path
 )
+
+data class SourceJVMClassNames(
+    val sourceFile: Path,
+    val jvmNames: List<String>,
+)

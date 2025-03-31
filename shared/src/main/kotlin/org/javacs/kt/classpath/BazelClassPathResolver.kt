@@ -20,7 +20,21 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
         LOG.info("Initializing BazelClassPathResolver at ${workspaceRoot.toAbsolutePath()}")
     }
 
-    override val packageSourceJarMappings: Set<PackageSourceMapping> get() {
+    override val sourceJvmClassNames: Set<SourceJVMClassNames> get() {
+        val lspInfos = getLspInfos()
+        val sourcesJvmClassNames = mutableSetOf<SourceJVMClassNames>()
+        lspInfos.forEach{
+            LspInfo.fromJson(it).sourceFilesList.forEach { source ->
+                sourcesJvmClassNames.add(SourceJVMClassNames(
+                    sourceFile = Paths.get(source.path),
+                    jvmNames = source.jvmClassNamesList
+                ))
+            }
+        }
+        return sourcesJvmClassNames
+    }
+
+    private fun getLspInfos(): Set<Path> {
         val lspInfos = mutableSetOf<Path>()
         val packageSourceMappings = mutableSetOf<PackageSourceMapping>()
         val bazelOut = Paths.get(workspaceRoot.toAbsolutePath().toString(), "bazel-out")
@@ -35,7 +49,12 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
                     }
                 }
         }
+        return lspInfos
+    }
 
+    override val packageSourceJarMappings: Set<PackageSourceMapping> get() {
+        val lspInfos = getLspInfos()
+        val packageSourceMappings = mutableSetOf<PackageSourceMapping>()
         lspInfos.forEach {
             LspInfo.fromJson(it).packageSourceMappingsList.forEach { mapping ->
                 packageSourceMappings.add(PackageSourceMapping(
@@ -64,17 +83,8 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
             return emptySet()
         }
         // Process
-        val lspInfos = mutableSetOf<Path>()
+        val lspInfos = getLspInfos()
         val cp = mutableSetOf<ClassPathEntry>()
-
-        Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
-            paths.filter { Files.isRegularFile(it) }
-                .forEach { path ->
-                    when {
-                        path.fileName.toString().endsWith("-kotlin-lsp.json") -> lspInfos.add(path)
-                    }
-                }
-        }
         val targetInfos = lspInfos.map {
             LspInfo.fromJson(it)
         }
