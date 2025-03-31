@@ -83,7 +83,7 @@ class JDILauncher(
 	private fun formatOptions(config: LaunchConfiguration): String {
 		var options = config.vmArguments
 		modulePaths?.let { options += " --module-path \"$modulePaths\"" }
-		options += " -classpath \"${formatClasspath(config)}:/Users/smocherla/src/kotlin-language-server-bazel-support/adapter/src/test/resources/bazel/bazel-out/platform-fastbuild/bin/src/binary.jar\""
+		options += " -classpath \"${formatClasspath(config)}:\""
 		return options
 	}
 

@@ -62,7 +62,7 @@ abstract class DebugAdapterTestFixture(
             "workspaceRoot" to absoluteWorkspaceRoot.toString(),
             "bazelTarget" to "//foo/bar",
             "mainClass" to mainClass,
-            "buildArgs" to listOf<String>(),
+            "buildFlags" to listOf<String>(),
             "vmArguments" to vmArguments
         )).join()
         println("Launched")
