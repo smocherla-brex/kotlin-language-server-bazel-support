@@ -9,7 +9,7 @@ object LspInfo {
     fun fromJson(jsonFile: Path): KotlinLspBazelTargetInfo {
         val targetInfo = KotlinLspBazelTargetInfo.newBuilder()
         val protoJson = jsonFile.toFile().readText()
-        JsonFormat.parser().merge(protoJson, targetInfo)
+        JsonFormat.parser().ignoringUnknownFields().merge(protoJson, targetInfo)
         return targetInfo.build()
     }
 }
