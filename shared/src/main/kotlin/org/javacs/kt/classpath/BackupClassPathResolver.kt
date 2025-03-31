@@ -15,6 +15,8 @@ object BackupClassPathResolver : ClassPathResolver {
     override val resolverType: String = "Backup"
     override val classpath: Set<ClassPathEntry> get() = findKotlinStdlib()?.let { setOf(it) }.orEmpty().map { ClassPathEntry(it, null) }.toSet()
     override val packageSourceJarMappings: Set<PackageSourceMapping> get() = emptySet()
+    override val sourceJvmClassNames: Set<SourceJVMClassNames>
+        get() = emptySet()
 }
 
 fun findKotlinStdlib(): Path? =

@@ -14,6 +14,8 @@ internal class MavenClassPathResolver private constructor(private val pom: Path)
 
     override val resolverType: String = "Maven"
 
+    override val sourceJvmClassNames: Set<SourceJVMClassNames>
+        get() = TODO("Not yet implemented")
     override val packageSourceJarMappings: Set<PackageSourceMapping>
         get() = TODO("Not yet implemented")
 

@@ -14,6 +14,9 @@ internal class GradleClassPathResolver(private val path: Path, private val inclu
     override val resolverType: String = "Gradle"
     private val projectDirectory: Path get() = path.parent
 
+
+    override val sourceJvmClassNames: Set<SourceJVMClassNames> = emptySet()
+
     override val classpath: Set<ClassPathEntry> get() {
         val scripts = listOf("projectClassPathFinder.gradle")
         val tasks = listOf("kotlinLSPProjectDeps")

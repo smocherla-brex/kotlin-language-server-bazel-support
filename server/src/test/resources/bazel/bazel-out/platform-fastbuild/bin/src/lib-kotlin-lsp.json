@@ -3,11 +3,16 @@
   "classpath": [{
     "compileJar": "bazel-out/platform-fastbuild/bin/src/lib.jar",
     "sourceJar": "bazel-out/platform-fastbuild/bin/src/lib-sources.jar"
+  }, {
+    "compileJar": "bazel-out/platform-opt-exec/bin/external/bazel_kotlin_lsp/kotlin-stdlib.jar",
+    "sourceJar": ""
   }],
   "sourceFiles": [{
-    "path": "src/Extensions.kt"
+    "path": "src/Extensions.kt",
+    "jvmClassNames": ["bazel.lsp_fixtures.extensions.ExtensionsKt"]
   }, {
-    "path": "src/Foo.kt"
+    "path": "src/Foo.kt",
+    "jvmClassNames": ["bazel.lsp_fixtures.App$Companion", "bazel.lsp_fixtures.App"]
   }],
   "packageSourceMappings": [{
     "packageName": "bazel.lsp_fixtures",

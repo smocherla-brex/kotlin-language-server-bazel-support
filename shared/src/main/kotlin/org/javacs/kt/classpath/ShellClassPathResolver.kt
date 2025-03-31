@@ -17,6 +17,8 @@ internal class ShellClassPathResolver(
     override val packageSourceJarMappings: Set<PackageSourceMapping>
         get() = TODO("Not yet implemented")
 
+    override val sourceJvmClassNames: Set<SourceJVMClassNames>
+        get() = TODO("Not yet implemented")
     override val classpath: Set<ClassPathEntry> get() {
         val workingDirectory = workingDir?.toFile() ?: script.toAbsolutePath().parent.toFile()
         val cmd = script.toString()

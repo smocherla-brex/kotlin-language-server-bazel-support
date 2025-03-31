@@ -42,6 +42,18 @@ class PackageSourceMappingEntryEntity(id: EntityID<Int>) : IntEntity(id) {
    var sourceJarPath by PackageSourceJarMappingEntry.sourceJarPath
 }
 
+private object SourceJVMClassNamesEntry : IntIdTable() {
+    val sourceFile = varchar("sourcefile", length = MAX_PATH_LENGTH)
+    val jvmClassNames = varchar("jvmclassnames", length = MAX_PATH_LENGTH).nullable()
+}
+
+class SourceJVMClassNamesEntryEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object: IntEntityClass<SourceJVMClassNamesEntryEntity>(SourceJVMClassNamesEntry)
+
+    var sourceFile by SourceJVMClassNamesEntry.sourceFile
+    var jvmClassNames by SourceJVMClassNamesEntry.jvmClassNames
+}
+
 class ClassPathMetadataCacheEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<ClassPathMetadataCacheEntity>(ClassPathMetadataCache)
 
@@ -106,6 +118,26 @@ internal class CachedClassPathResolver(
             }
         }
 
+    private var cachedSourceJvmClassNames: Set<SourceJVMClassNames>
+        get() = transaction(db) {
+            SourceJVMClassNamesEntryEntity.all().map {
+                SourceJVMClassNames(
+                   sourceFile = Paths.get(it.sourceFile),
+                   jvmNames = it.jvmClassNames?.split(",")?: emptyList()
+                )
+            }.toSet()
+        }
+
+        set(newEntries) = transaction(db) {
+            SourceJVMClassNamesEntry.deleteAll()
+            newEntries.map {
+                SourceJVMClassNamesEntryEntity.new {
+                    sourceFile = it.sourceFile.toString()
+                    jvmClassNames = it.jvmNames.joinToString(",")
+                }
+            }
+        }
+
     private var cachedBuildScriptClassPathEntries: Set<Path>
         get() = transaction(db) { BuildScriptClassPathCacheEntryEntity.all().map { Paths.get(it.jar) }.toSet() }
         set(newEntries) = transaction(db) {
@@ -162,6 +194,15 @@ internal class CachedClassPathResolver(
             return newMappings
         }
 
+    override val sourceJvmClassNames: Set<SourceJVMClassNames> get() {
+        LOG.info("Source JVM class names is outdated or not, resolving again")
+
+        val newSourceJVMClassNames = wrapped.sourceJvmClassNames
+        updateSourceJvmClassNames(newSourceJVMClassNames)
+
+        return newSourceJVMClassNames
+    }
+
     override val buildScriptClasspath: Set<Path> get() {
         if (!dependenciesChanged()) {
             LOG.info("Build script classpath has not changed. Fetching from cache")
@@ -200,6 +241,12 @@ internal class CachedClassPathResolver(
     private fun updatePackageSourceMappings(newPackageSourceMappings: Set<PackageSourceMapping>) {
         transaction(db) {
             cachedPackageSourceMappingEntries = newPackageSourceMappings
+        }
+    }
+
+    private fun updateSourceJvmClassNames(newSourceJvmClassNames: Set<SourceJVMClassNames>) {
+        transaction(db) {
+            cachedSourceJvmClassNames = newSourceJvmClassNames
         }
     }
 

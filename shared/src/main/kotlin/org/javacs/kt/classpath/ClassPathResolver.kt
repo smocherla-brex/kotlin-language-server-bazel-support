@@ -37,6 +37,16 @@ interface ClassPathResolver {
             emptySet<PackageSourceMapping>()
         }
 
+    val sourceJvmClassNames: Set<SourceJVMClassNames>
+
+    val sourceJvmClassNamesOrEmpty: Set<SourceJVMClassNames>
+        get() = try {
+            sourceJvmClassNames
+        } catch (e: Exception) {
+            LOG.warn("Could not resolve source JVM class names {}: {}", resolverType, e.message)
+            emptySet<SourceJVMClassNames>()
+        }
+
     val classpathWithSources: Set<ClassPathEntry> get() = classpath
 
     /**
@@ -55,6 +65,7 @@ interface ClassPathResolver {
             override val resolverType = "[]"
             override val classpath = emptySet<ClassPathEntry>()
             override val packageSourceJarMappings = emptySet<PackageSourceMapping>()
+            override val sourceJvmClassNames = emptySet<SourceJVMClassNames>()
         }
     }
 }
@@ -79,6 +90,9 @@ internal class UnionClassPathResolver(val lhs: ClassPathResolver, val rhs: Class
     override val classpathWithSources get() = lhs.classpathWithSources + rhs.classpathWithSources
     override val currentBuildFileVersion: Long get() = max(lhs.currentBuildFileVersion, rhs.currentBuildFileVersion)
     override val packageSourceJarMappings: Set<PackageSourceMapping> = lhs.packageSourceJarMappings + rhs.packageSourceJarsMappingOrEmpty
+    override val sourceJvmClassNames: Set<SourceJVMClassNames> = lhs.sourceJvmClassNames + rhs.sourceJvmClassNames
+    override val sourceJvmClassNamesOrEmpty: Set<SourceJVMClassNames>
+        get() = lhs.sourceJvmClassNamesOrEmpty + rhs.sourceJvmClassNamesOrEmpty
 }
 
 internal class FirstNonEmptyClassPathResolver(val lhs: ClassPathResolver, val rhs: ClassPathResolver) : ClassPathResolver {
@@ -92,4 +106,7 @@ internal class FirstNonEmptyClassPathResolver(val lhs: ClassPathResolver, val rh
     } ?: rhs.classpathWithSources
     override val packageSourceJarMappings: Set<PackageSourceMapping> = lhs.packageSourceJarMappings.takeIf { it.isNotEmpty() } ?: rhs.packageSourceJarsMappingOrEmpty
     override val currentBuildFileVersion: Long get() = max(lhs.currentBuildFileVersion, rhs.currentBuildFileVersion)
+    override val sourceJvmClassNames: Set<SourceJVMClassNames> = lhs.sourceJvmClassNames.takeIf { it.isNotEmpty() } ?: rhs.sourceJvmClassNames
+    override val sourceJvmClassNamesOrEmpty: Set<SourceJVMClassNames>
+        get() = lhs.sourceJvmClassNamesOrEmpty.takeIf { it.isNotEmpty() } ?: rhs.sourceJvmClassNamesOrEmpty
 }

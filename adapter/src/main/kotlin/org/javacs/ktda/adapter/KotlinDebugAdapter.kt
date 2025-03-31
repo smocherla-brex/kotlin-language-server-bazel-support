@@ -110,6 +110,7 @@ class KotlinDebugAdapter(
 			mainClass,
             bazelTarget,
             buildArgs.filterIsInstance<String>(),
+            classpathResolver.sourceJvmClassNamesOrEmpty,
 			workspaceRoot,
 			vmArguments
 		)
@@ -202,8 +203,8 @@ class KotlinDebugAdapter(
 	override fun attach(args: Map<String, Any>) = launcherAsync.execute {
 		performInitialization()
 
-		val projectRoot = (args["projectRoot"] as? String)?.let { Paths.get(it) }
-			?: throw missingRequestArgument("attach", "projectRoot")
+		val workspaceRoot = (args["workspaceRoot"] as? String)?.let { Paths.get(it) }
+			?: throw missingRequestArgument("attach", "workspaceRoot")
 
 		val hostName = (args["hostName"] as? String)
 			?: throw missingRequestArgument("attach", "hostName")
@@ -216,8 +217,10 @@ class KotlinDebugAdapter(
 
 		setupCommonInitializationParams(args)
 
+        val classpathResolver = debugClassPathResolver(listOf(workspaceRoot))
+
 		debuggee = launcher.attach(
-			AttachConfiguration(projectRoot, hostName, port, timeout),
+			AttachConfiguration(workspaceRoot, hostName, port, timeout, classpathResolver.sourceJvmClassNamesOrEmpty),
 			context
 		).also(::setupDebuggeeListeners)
 
