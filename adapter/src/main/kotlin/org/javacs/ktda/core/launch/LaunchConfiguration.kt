@@ -3,6 +3,7 @@ package org.javacs.ktda.core.launch
 import org.javacs.kt.classpath.SourceJVMClassNames
 import java.nio.file.Path
 
+@Suppress("LongParameterList")
 class LaunchConfiguration(
 	val classpath: Set<Path>,
 	val mainClass: String,
