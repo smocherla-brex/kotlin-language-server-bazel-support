@@ -1,5 +1,6 @@
 package org.javacs.ktda.classpath
 
+import org.javacs.kt.LOG
 import org.javacs.kt.classpath.SourceJVMClassNames
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -10,11 +11,15 @@ import kotlin.io.path.relativeTo
  * Retrieves the JVM name represenations computed for the source file
 **/
 fun toJVMClassNames(workspaceRoot: Path, filePath: String, sourcesJVMClassNames: Set<SourceJVMClassNames>): List<String>? {
-	return sourcesJVMClassNames.filter {
+	val jvmNames = sourcesJVMClassNames.filter {
         it.sourceFile == Paths.get(filePath).relativeTo(workspaceRoot)
     }.map {
         it.jvmNames
     }.flatten()
+    if(jvmNames.isEmpty()) {
+        LOG.warn("Source JVM mappings is empty, breakpoints may not work")
+    }
+    return jvmNames
 }
 
 // TODO: Better path resolution, especially when dealing with

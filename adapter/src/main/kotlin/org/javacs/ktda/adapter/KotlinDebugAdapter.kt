@@ -90,8 +90,8 @@ class KotlinDebugAdapter(
         val bazelTarget = (args["bazelTarget"] as? String)
             ?: throw missingRequestArgument("launch", "bazelTarget")
 
-        val buildArgs = (args["buildArgs"] as? List<*>)
-            ?: throw missingRequestArgument("launch", "buildArgs")
+        val buildFlags = (args["buildFlags"] as? List<*>)
+            ?: throw missingRequestArgument("launch", "buildFlags")
 
 		val mainClass = (args["mainClass"] as? String)
 			?: throw missingRequestArgument("launch", "mainClass")
@@ -99,7 +99,7 @@ class KotlinDebugAdapter(
 		val vmArguments = (args["vmArguments"] as? String) ?: ""
 
         // we need to build the targets first to make sure the classpath is available
-        builder.build(workspaceRoot, listOf(bazelTarget), buildArgs.filterIsInstance<String>()).get()
+        builder.build(workspaceRoot, listOf(bazelTarget), buildFlags.filterIsInstance<String>()).get()
 
 		setupCommonInitializationParams(args)
 
@@ -109,7 +109,7 @@ class KotlinDebugAdapter(
 			classpathResolver.classpathOrEmpty.map { it.compiledJar }.toSet(),
 			mainClass,
             bazelTarget,
-            buildArgs.filterIsInstance<String>(),
+            buildFlags.filterIsInstance<String>(),
             classpathResolver.sourceJvmClassNamesOrEmpty,
 			workspaceRoot,
 			vmArguments
@@ -264,7 +264,7 @@ class KotlinDebugAdapter(
 	}
 
 	override fun setBreakpoints(args: SetBreakpointsArguments) = async.compute {
-		LOG.debug("{} breakpoints found", args.breakpoints.size)
+		LOG.info("{} breakpoints found", args.breakpoints.size)
 
 		// TODO: Support logpoints and conditional breakpoints
 
