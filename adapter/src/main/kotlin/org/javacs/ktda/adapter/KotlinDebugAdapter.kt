@@ -264,7 +264,7 @@ class KotlinDebugAdapter(
 	}
 
 	override fun setBreakpoints(args: SetBreakpointsArguments) = async.compute {
-		LOG.debug("{} breakpoints found", args.breakpoints.size)
+		LOG.info("{} breakpoints found", args.breakpoints.size)
 
 		// TODO: Support logpoints and conditional breakpoints
 
