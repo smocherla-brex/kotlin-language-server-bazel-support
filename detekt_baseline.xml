@@ -23,6 +23,7 @@
     <ID>ForbiddenComment:Compiler.kt$CompilationEnvironment$// TODO: Use ScriptDefinition.FromLegacyTemplate directly if possible</ID>
     <ID>ForbiddenComment:Compiler.kt$Compiler$// TODO: Lock at file-level</ID>
     <ID>ForbiddenComment:CompilerClassPath.kt$CompilerClassPath$// TODO: Fetch class path and build script class path concurrently (and asynchronously)</ID>
+    <ID>ForbiddenComment:CompilerClassPath.kt$CompilerClassPath$// TODO: we walk bazel-out here again to collect the files emitted by the aspect</ID>
     <ID>ForbiddenComment:Completions.kt$// TODO: CRLF?</ID>
     <ID>ForbiddenComment:Completions.kt$// TODO: Deal with alias imports</ID>
     <ID>ForbiddenComment:Completions.kt$// TODO: Visibility checker should be less liberal</ID>
@@ -49,8 +50,6 @@
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: look into this</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: see where this should ideally be placed</ID>
     <ID>ForbiddenComment:PathUtils.kt$// TODO: Better path resolution, especially when dealing with</ID>
-    <ID>ForbiddenComment:PathUtils.kt$// TODO: Implement this using the Kotlin compiler API instead</ID>
-    <ID>ForbiddenComment:PathUtils.kt$// TODO: Use Project.sourcesRoot instead</ID>
     <ID>ForbiddenComment:SemanticTokens.kt$// TODO: Ideally we would like to cut-off subtrees outside our range, but this doesn't quite seem to work</ID>
     <ID>ForbiddenComment:SourceExclusions.kt$SourceExclusions$// TODO: Read exclusions from gitignore/settings.json/... instead of</ID>
     <ID>ForbiddenComment:SourceFiles.kt$SourceFiles$// TODO: we walk bazel-out here again to collect the files emitted by the aspect</ID>
@@ -211,6 +210,7 @@
     <ID>WildcardImport:Compiler.kt$import org.jetbrains.kotlin.descriptors.*</ID>
     <ID>WildcardImport:Compiler.kt$import org.jetbrains.kotlin.psi.*</ID>
     <ID>WildcardImport:Compiler.kt$import org.jetbrains.kotlin.resolve.*</ID>
+    <ID>WildcardImport:CompilerClassPath.kt$import java.nio.file.*</ID>
     <ID>WildcardImport:Completions.kt$import org.jetbrains.kotlin.descriptors.*</ID>
     <ID>WildcardImport:Completions.kt$import org.jetbrains.kotlin.psi.*</ID>
     <ID>WildcardImport:Completions.kt$import org.jetbrains.kotlin.psi.psiUtil.*</ID>
