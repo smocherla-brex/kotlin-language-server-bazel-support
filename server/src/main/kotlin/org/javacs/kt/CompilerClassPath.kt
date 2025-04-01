@@ -5,12 +5,13 @@ import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.classpath.defaultClassPathResolver
 import org.javacs.kt.compiler.Compiler
 import org.javacs.kt.database.DatabaseService
+import org.javacs.kt.proto.LspInfo
 import org.javacs.kt.util.AsyncExecutor
 import java.io.Closeable
 import java.io.File
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
+import java.util.stream.Collectors
+import kotlin.io.path.isRegularFile
 
 /**
  * Manages the class path (compiled JARs, etc), the Java source path
@@ -170,11 +171,23 @@ class CompilerClassPath(
     private fun isBuildScript(file: Path): Boolean = file.fileName.toString().let { it == "pom.xml" || it == "build.gradle" || it == "build.gradle.kts" }
 
     private fun findJavaSourceFiles(root: Path): Set<Path> {
-        val sourceMatcher = FileSystems.getDefault().getPathMatcher("glob:*.java")
-        return SourceExclusions(listOf(root), scriptsConfig)
-            .walkIncluded()
-            .filter { sourceMatcher.matches(it.fileName) }
-            .toSet()
+        val bazelOut = root.resolve("bazel-out")
+        if(!Files.exists(bazelOut)) {
+            return emptySet()
+        }
+        // TODO: we walk bazel-out here again to collect the files emitted by the aspect
+        // this is redundant as we also do it in classpath resolver, so it might be worth unifying the logic
+        // to reduce filesystem calls
+        return Files.walk(bazelOut, FileVisitOption.FOLLOW_LINKS).use { paths ->
+            paths.filter { it.isRegularFile() && it.fileName.toString().endsWith("kotlin-lsp.json") }
+                .map { path: Path -> LspInfo.fromJson(path) }
+                .map { it.sourceFilesList }
+                .collect(Collectors.toList())
+                .flatten()
+                .filter { it.path.endsWith(".java") }
+                .map { Paths.get(it.path) }
+                .toSet()
+        }
     }
 
     override fun close() {

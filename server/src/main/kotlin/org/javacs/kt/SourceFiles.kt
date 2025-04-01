@@ -195,6 +195,10 @@ class SourceFiles(
                 .map { it.sourceFilesList }
                 .collect(Collectors.toList())
                 .flatten()
+                // we want to use only Kt source files for compiling here
+                // java source files are passed separately. If we pass Java source files directly,
+                // we run into an obscure "Unable to find script compilation configuration for the script KtFile" error
+                .filter { it.path.endsWith(".kt") }
                 .map { Paths.get(it.path).toUri() }
                 .toSet()
         }
