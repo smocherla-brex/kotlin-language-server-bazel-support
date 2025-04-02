@@ -25,7 +25,7 @@ jobs:
           tag=$(basename "${{ github.ref }}")
           echo "tag=$tag" >> $GITHUB_OUTPUT
       - name: Build distribution
-        run: ./gradlew :server:distZip
+        run: ./gradlew :server:distZip :adapter:distZip
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -40,4 +40,6 @@ jobs:
         run: |
           tag="${{ steps.tag.outputs.tag }}"
           cp server/build/distributions/server.zip server/build/distributions/kotlin-language-server.zip
+          cp adapter/build/distributions/adapter.zip adapter/build/distributions/kotlin-debug-adapter.zip
           gh release upload "$tag" server/build/distributions/*
+          gh release upload "$tag" adapter/build/distributions/*
