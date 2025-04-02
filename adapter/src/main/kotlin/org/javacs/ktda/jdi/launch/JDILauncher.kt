@@ -83,16 +83,16 @@ class JDILauncher(
 	private fun formatOptions(config: LaunchConfiguration): String {
 		var options = config.vmArguments
 		modulePaths?.let { options += " --module-path \"$modulePaths\"" }
-		options += " -classpath \"${formatClasspath(config)}:\""
+		options += " -classpath \"${formatClasspath(config)}\""
 		return options
 	}
 
 	private fun formatMainClass(config: LaunchConfiguration): String {
-		val mainClasses = config.mainClass.split("/")
-		return if ((modulePaths != null) || (mainClasses.size == 2)) {
-			// Required for Java 9 compatibility
-			"-m ${config.mainClass}"
-		} else config.mainClass
+		var mainClass = config.mainClass
+        if(config.additionalArguments.size > 0) {
+            mainClass = "${mainClass} ${config.additionalArguments.joinToString(" ")}"
+        }
+        return mainClass
 	}
 
     private fun sourceFiles(workspaceRoot: Path): Set<Path> {
