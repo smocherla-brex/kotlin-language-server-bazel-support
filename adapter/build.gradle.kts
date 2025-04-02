@@ -90,3 +90,11 @@ tasks.installDist {
 tasks.build {
     finalizedBy("installDist")
 }
+
+tasks.distZip {
+    archiveFileName.set("${project.name}.zip")
+}
+
+tasks.distTar {
+    archiveFileName.set("${project.name}.tar")
+}
