@@ -61,6 +61,8 @@ class JDIDebuggee(
 		LOG.trace("Updating breakpoints")
 		hookBreakpoints()
 
+        LOG.info("Source files are {}", sourceFiles)
+
         // Now that breakpoints are wired, resume the VM
         vm.resume()
 	}
@@ -126,15 +128,6 @@ class JDIDebuggee(
 					request.enable()
 				}
 
-				// Try setting breakpoint using loaded VM classes
-
-				val classPattern = "^${Regex.escape(className)}(?:\\$.*)?".toRegex()
-				vm.allClasses()
-					.filter { classPattern.matches(it.name()) }
-					.forEach {
-						LOG.trace("Setting breakpoint at known type {}", it.name())
-						setBreakpointAtType(it, lineNumber)
-					}
 			} ?: LOG.warn("Not adding breakpoint in unrecognized source file {}", Paths.get(filePath).fileName)
 	}
 
@@ -179,15 +172,17 @@ class JDIDebuggee(
             val sourcePath = location.sourcePath()
             val sourceName = location.sourceName()
 
-            sourceFiles
+            LOG.debug("source path, {}", sourcePath)
+            val result = sourceFiles
                 .asSequence()
-                .map { it.resolve(sourcePath) }
-                .mapNotNull { findValidKtFilePath(it, sourceName) }
+                .filter { it.endsWith(sourcePath) }
                 .firstOrNull()
                 ?.let { Source(
-                    name = sourceName ?: it.fileName.toString(),
-                    filePath = it
+                    name = sourceName ?: it.toString(),
+                    filePath = workspaceRoot.resolve(it)
                 ) }
+            LOG.debug("Result, {} ", result)
+            result
         } catch(exception: AbsentInformationException) {
             null
         }
