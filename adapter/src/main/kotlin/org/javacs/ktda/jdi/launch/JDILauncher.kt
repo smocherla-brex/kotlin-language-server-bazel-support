@@ -83,7 +83,7 @@ class JDILauncher(
 	private fun formatOptions(config: LaunchConfiguration): String {
 		var options = config.vmArguments
 		modulePaths?.let { options += " --module-path \"$modulePaths\"" }
-		options += " -classpath \"${formatClasspath(config)}\""
+		options += " -classpath @${formatClasspathToFile(config)}"
 		return options
 	}
 
@@ -110,9 +110,16 @@ class JDILauncher(
         }
     }
 
-	private fun formatClasspath(config: LaunchConfiguration): String = config.classpath
-		.map { it.toAbsolutePath().toString() }
-		.reduce { prev, next -> "$prev${File.pathSeparatorChar}$next" }
+	private fun formatClasspathToFile(config: LaunchConfiguration): Path {
+        val tempClassPathFile = File.createTempFile("klsclasspath-", ".txt")
+        val formattedClassPath = formatClasspath(config)
+        tempClassPathFile.writeText(formattedClassPath)
+        return tempClassPathFile.toPath()
+    }
+
+    private fun formatClasspath(config: LaunchConfiguration): String = config.classpath
+        .map { it.toAbsolutePath().toString() }
+        .reduce { prev, next -> "$prev${File.pathSeparatorChar}$next" }
 
 	private fun urlEncode(arg: Collection<String>?) = arg
 		?.map { URLEncoder.encode(it, StandardCharsets.UTF_8.name()) }
