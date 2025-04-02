@@ -62,6 +62,9 @@ class JDILauncher(
 			args["suspend"]!!.setValue("true")
 			args["options"]!!.setValue(formatOptions(config))
 			args["main"]!!.setValue(formatMainClass(config))
+            config.javaHome?.let {
+                args["home"]!!.setValue(it)
+            }
 		}
 
 	private fun createAttachArgs(config: AttachConfiguration, connector: Connector): Map<String, Connector.Argument> = connector.defaultArguments()

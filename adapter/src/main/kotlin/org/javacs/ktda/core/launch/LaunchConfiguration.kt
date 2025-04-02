@@ -11,5 +11,6 @@ class LaunchConfiguration(
     val sourcesJVMClassNames: Set<SourceJVMClassNames>,
 	val workspaceRoot: Path,
 	val vmArguments: String = "",
+    val javaHome: String?,
     val additionalArguments: List<String> = emptyList()
 )

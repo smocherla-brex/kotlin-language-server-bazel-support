@@ -87,6 +87,8 @@ class KotlinDebugAdapter(
 		val workspaceRoot = (args["workspaceRoot"] as? String)?.let { Paths.get(it) }
 			?: throw missingRequestArgument("launch", "workspaceRoot")
 
+        val javaHome = args["javaHome"] as? String?
+
         val bazelTarget = (args["bazelTarget"] as? String)
             ?: throw missingRequestArgument("launch", "bazelTarget")
 
@@ -114,6 +116,7 @@ class KotlinDebugAdapter(
             classpathResolver.sourceJvmClassNamesOrEmpty,
 			workspaceRoot,
 			vmArguments,
+            javaHome,
             additionalArgs.filterIsInstance<String>(),
 		)
 		debuggee = launcher.launch(
