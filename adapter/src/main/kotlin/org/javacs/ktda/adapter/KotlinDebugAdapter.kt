@@ -98,6 +98,8 @@ class KotlinDebugAdapter(
 
 		val vmArguments = (args["vmArguments"] as? String) ?: ""
 
+        val additionalArgs = (args["additionalArgs"] as? List<*>) ?: listOf<String>()
+
         // we need to build the targets first to make sure the classpath is available
         builder.build(workspaceRoot, listOf(bazelTarget), buildFlags.filterIsInstance<String>()).get()
 
@@ -109,10 +111,10 @@ class KotlinDebugAdapter(
 			classpathResolver.classpathOrEmpty.map { it.compiledJar }.toSet(),
 			mainClass,
             bazelTarget,
-            buildFlags.filterIsInstance<String>(),
             classpathResolver.sourceJvmClassNamesOrEmpty,
 			workspaceRoot,
-			vmArguments
+			vmArguments,
+            additionalArgs.filterIsInstance<String>(),
 		)
 		debuggee = launcher.launch(
 			config,

@@ -8,8 +8,8 @@ class LaunchConfiguration(
 	val classpath: Set<Path>,
 	val mainClass: String,
     val bazelTarget: String,
-    val buildArgs: List<String>,
     val sourcesJVMClassNames: Set<SourceJVMClassNames>,
 	val workspaceRoot: Path,
-	val vmArguments: String = ""
+	val vmArguments: String = "",
+    val additionalArguments: List<String> = emptyList()
 )
