@@ -111,25 +111,21 @@ class JDIDebuggee(
 		toJVMClassNames(workspaceRoot, filePath, sourcesJvmClassNames)
 			?.forEach { className ->
 				// Try setting breakpoint using a ClassPrepareRequest
-
-				for (name in listOf(className, "$className$*")) { // For local types
-					val request = eventRequestManager
+	                val request = eventRequestManager
 						.createClassPrepareRequest()
 						.apply { addClassFilter(className) }
 
 					breakpointSubscriptions.add(eventBus.subscribe(ClassPrepareEvent::class) {
 						if (it.jdiEvent.request() == request) {
 							val referenceType = it.jdiEvent.referenceType()
-							LOG.trace("Setting breakpoint at prepared type {}", referenceType.name())
+							LOG.info("Setting breakpoint at prepared type {}", referenceType.name())
 							setBreakpointAtType(referenceType, lineNumber)
 						}
 					})
 
 					request.enable()
 				}
-
-			} ?: LOG.warn("Not adding breakpoint in unrecognized source file {}", Paths.get(filePath).fileName)
-	}
+    }
 
 	/** Tries to set a breakpoint - Will return whether this was successful */
 	private fun setBreakpointAtType(refType: ReferenceType, lineNumber: Long): Boolean {
@@ -167,21 +163,26 @@ class JDIDebuggee(
 	override fun positionOf(location: Location): Position? = sourceOf(location)
 		?.let { Position(it, location.lineNumber()) }
 
+    private fun pathToJvmName(sourcePath: String): String {
+        return sourcePath.replace("/", ".").replace(".kt", "")
+    }
+
     private fun sourceOf(location: Location): Source? =
         try {
             val sourcePath = location.sourcePath()
             val sourceName = location.sourceName()
 
-            LOG.debug("source path, {}", sourcePath)
-            val result = sourceFiles
+            val result = sourcesJvmClassNames
                 .asSequence()
-                .filter { it.endsWith(sourcePath) }
+                .filter { it.jvmNames.contains(pathToJvmName(sourcePath)) }
                 .firstOrNull()
                 ?.let { Source(
                     name = sourceName ?: it.toString(),
-                    filePath = workspaceRoot.resolve(it)
+                    filePath = workspaceRoot.resolve(it.sourceFile)
                 ) }
-            LOG.debug("Result, {} ", result)
+            if(result == null) {
+                LOG.debug("Could not find matching source location for {}", sourcePath)
+            }
             result
         } catch(exception: AbsentInformationException) {
             null
