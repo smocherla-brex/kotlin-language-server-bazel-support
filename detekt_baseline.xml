@@ -104,6 +104,7 @@
     <ID>MatchingDeclarationName:Main.kt$Args</ID>
     <ID>MayBeConst:LoggingInputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
     <ID>MayBeConst:LoggingOutputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
+    <ID>NestedBlockDepth:BazelBuildService.kt$BazelBuildService$override fun classpath(workspaceRoot: Path, target: String, buildFlags: List&lt;String&gt;): Set&lt;Path&gt;</ID>
     <ID>NestedBlockDepth:Completions.kt$private fun completeMembers(file: CompiledFile, cursor: Int, receiverExpr: KtExpression, unwrapNullable: Boolean = false): Sequence&lt;DeclarationDescriptor&gt;</ID>
     <ID>NestedBlockDepth:KotlinWorkspaceService.kt$KotlinWorkspaceService$override fun didChangeWatchedFiles(params: DidChangeWatchedFilesParams)</ID>
     <ID>NestedBlockDepth:OverrideMembers.kt$private fun parametersMatch( function: KtNamedFunction, functionDescriptor: FunctionDescriptor ): Boolean</ID>
