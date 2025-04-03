@@ -64,22 +64,23 @@ class BazelBuildService: BuildService {
     }
 
     override fun classpath(workspaceRoot: Path, target: String, buildFlags: List<String>): Set<Path> {
-            val command = listOf("bazel", "cquery", target) + buildFlags + listOf("--output=starlark", "--starlark:expr='\n'.join([j.path for j in providers(target)['@@_builtins//:common/java/java_info.bzl%JavaInfo'].transitive_runtime_jars.to_list()])")
-            val process = ProcessBuilder().command(command)
+        LOG.info("Determining bazel classpath for ${target}")
+        val command = listOf("bazel", "cquery", target) + buildFlags + listOf("--output=starlark", "--starlark:expr='\n'.join([j.path for j in providers(target)['@@_builtins//:common/java/java_info.bzl%JavaInfo'].transitive_runtime_jars.to_list()])")
+        val process = ProcessBuilder().command(command)
                 .directory(workspaceRoot.toFile())
                 .start()
 
-            val returnCode = process.waitFor()
-            val classpathEntries = mutableSetOf<Path>()
-            if(returnCode == 0) {
+        val returnCode = process.waitFor()
+        val classpathEntries = mutableSetOf<Path>()
+        if(returnCode == 0) {
                 process.inputStream.bufferedReader(Charsets.UTF_8).use {
                     it.lines().forEach { line ->
-                        classpathEntries.add(Paths.get(line))
+                        classpathEntries.add(workspaceRoot.resolve(line))
                     }
                 }
-            } else {
+        } else {
                 throw KotlinDAException("Unable to determine runtime classpath: bazel cquery failed with exit code $returnCode")
-            }
+        }
         return classpathEntries
     }
 }

@@ -61,7 +61,7 @@ class JDIDebuggee(
 		LOG.trace("Updating breakpoints")
 		hookBreakpoints()
 
-        LOG.info("Source files are {}", sourceFiles)
+        LOG.debug("Source files are {}", sourceFiles)
 
         // Now that breakpoints are wired, resume the VM
         vm.resume()
