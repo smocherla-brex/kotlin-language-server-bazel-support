@@ -17,7 +17,7 @@ fun toJVMClassNames(workspaceRoot: Path, filePath: String, sourcesJVMClassNames:
         it.jvmNames
     }.flatten()
     if(jvmNames.isEmpty()) {
-        LOG.info("Sources are {}", sourcesJVMClassNames)
+        LOG.debug("Sources are {}", sourcesJVMClassNames)
         LOG.warn("Source JVM mappings is empty for ${filePath}, breakpoints may not work")
     }
     return jvmNames
