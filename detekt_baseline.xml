@@ -173,6 +173,7 @@
     <ID>TooManyFunctions:ExtractSymbolKind.kt$ExtractSymbolKind : DeclarationDescriptorVisitor</ID>
     <ID>TooManyFunctions:ExtractSymbolVisibility.kt$ExtractSymbolVisibility : DeclarationDescriptorVisitor</ID>
     <ID>TooManyFunctions:FindReferences.kt$org.javacs.kt.references.FindReferences.kt</ID>
+    <ID>TooManyFunctions:JDIDebuggee.kt$JDIDebuggee : DebuggeeJDISessionContext</ID>
     <ID>TooManyFunctions:JDILauncher.kt$JDILauncher : DebugLauncher</ID>
     <ID>TooManyFunctions:JavaElementConverter.kt$JavaElementConverter : JavaElementVisitor</ID>
     <ID>TooManyFunctions:JavaTypeConverter.kt$JavaTypeConverter : PsiTypeVisitor</ID>
