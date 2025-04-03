@@ -13,6 +13,7 @@ import org.javacs.kt.LogLevel
 import org.javacs.kt.LogMessage
 import org.javacs.kt.util.AsyncExecutor
 import org.javacs.ktda.builder.BuildService
+import org.javacs.ktda.classpath.TargetClassPathResolver
 import org.javacs.ktda.util.JSON_LOG
 import org.javacs.ktda.util.KotlinDAException
 import org.javacs.ktda.util.ObjectPool
@@ -106,9 +107,10 @@ class KotlinDebugAdapter(
 		setupCommonInitializationParams(args)
 
         val classpathResolver = debugClassPathResolver(listOf(workspaceRoot))
+        val targetClassPathResolver = TargetClassPathResolver(workspaceRoot, bazelTarget, buildFlags.filterIsInstance<String>(), builder)
 
 		val config = LaunchConfiguration(
-			classpathResolver.classpathOrEmpty.map { it.compiledJar }.toSet(),
+			targetClassPathResolver.classpath,
 			mainClass,
             bazelTarget,
             classpathResolver.sourceJvmClassNamesOrEmpty,

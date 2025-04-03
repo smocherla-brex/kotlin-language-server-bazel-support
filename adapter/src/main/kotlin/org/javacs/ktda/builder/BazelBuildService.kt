@@ -6,10 +6,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.javacs.kt.LOG
+import org.javacs.ktda.util.KotlinDAException
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
 class BazelBuildService: BuildService {
@@ -58,6 +61,40 @@ class BazelBuildService: BuildService {
             } catch (e: Exception) {
                 LOG.warn("Error streaming bazel output: {}", e.message)
             }
+        }
+    }
+
+    override fun classpath(workspaceRoot: Path, target: String, buildFlags: List<String>): Set<Path> {
+        LOG.info("Determining bazel classpath for ${target}")
+        val starlarkFile = File.createTempFile("bazel-expr", ".star")
+        starlarkFile.writeText("""
+def format(target):
+    return "\n".join([j.path for j in providers(target)["@@_builtins//:common/java/java_info.bzl%JavaInfo"].transitive_runtime_jars.to_list()])
+""")
+        try {
+            val command = listOf("bazel", "cquery", target) + buildFlags + listOf(
+                "--output=starlark",
+                "--starlark:file=${starlarkFile.absolutePath}",
+            )
+            val process = ProcessBuilder().command(command)
+                .directory(workspaceRoot.toFile())
+                .start()
+
+            val returnCode = process.waitFor()
+            val classpathEntries = mutableSetOf<Path>()
+            if (returnCode == 0) {
+                process.inputStream.bufferedReader(Charsets.UTF_8).use {
+                    it.lines().forEach { line ->
+                        classpathEntries.add(workspaceRoot.resolve(line))
+                    }
+                }
+            } else {
+                val error = process.errorStream.bufferedReader().readText()
+                throw KotlinDAException("Unable to determine runtime classpath: bazel cquery failed with exit code $returnCode, error: $error")
+            }
+            return classpathEntries
+        } finally {
+            starlarkFile.delete()
         }
     }
 }

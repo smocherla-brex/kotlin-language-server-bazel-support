@@ -26,6 +26,11 @@ abstract class DebugAdapterTestFixture(
         override fun build(workspaceRoot: Path, targets: List<String>, args: List<String>): CompletableFuture<Void> {
             return CompletableFuture.completedFuture(null)
         }
+
+        override fun classpath(workspaceRoot: Path, target: String, args: List<String>): Set<Path> {
+            return setOf(workspaceRoot.resolve("bazel-out/platform-fastbuild/bin/src/lib.jar"),
+                workspaceRoot.resolve("bazel-out/platform-opt-exec/bin/external/maven/org/jetbrains/kotlin/kotlin-stdlib/1.9.21/kotlin-stdlib-1.9.21.jar"),)
+        }
     }
 
     @Before fun startDebugAdapter() {
