@@ -77,12 +77,12 @@ data class FormattingConfiguration(
     var ktfmt: KtfmtConfiguration = KtfmtConfiguration()
 )
 
-fun getStoragePath(params: InitializeParams): Path? {
+fun getInitializationOptions(params: InitializeParams): InitializationOptions? {
     params.initializationOptions?.let { initializationOptions ->
         val gson = GsonBuilder().registerTypeHierarchyAdapter(Path::class.java, GsonPathConverter()).create()
         val options = gson.fromJson(initializationOptions as JsonElement, InitializationOptions::class.java)
 
-        return options?.storagePath
+        return options
     }
 
     return null
@@ -90,7 +90,9 @@ fun getStoragePath(params: InitializeParams): Path? {
 
 data class InitializationOptions(
     // A path to a directory used by the language server to store data. Used for caching purposes.
-    val storagePath: Path?
+    val storagePath: Path?,
+    // If lazy compilation is to be enabled by the language server. Used for performance improvements
+    val lazyCompilation: Boolean = false,
 )
 
 class GsonPathConverter : JsonDeserializer<Path?> {
