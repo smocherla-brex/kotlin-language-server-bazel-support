@@ -44,7 +44,7 @@ fun goToDefinition(
             destination = psi.nameIdentifier?.let(::location) ?: destination
         }
         if(destination == null && configuration.compiler.lazyCompilation) {
-            // This might only work for classes for now
+            // This might only work for classes and functions for now
             val jvmName = if(target is FunctionDescriptor) {
                 target.containingDeclaration.fqNameSafe.asString()
             } else {
