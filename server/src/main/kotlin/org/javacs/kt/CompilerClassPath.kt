@@ -31,7 +31,6 @@ class CompilerClassPath(
     val packageSourceMappings = mutableSetOf<PackageSourceMapping>()
     val outputDirectory: File = Files.createTempDirectory("klsBuildOutput").toFile()
     val javaHome: String? = System.getProperty("java.home", null)
-    private var lazyCompilation: Boolean = false
 
     var compiler = Compiler(
         javaSourcePath,
