@@ -17,6 +17,7 @@ import java.nio.file.Files
 import kotlin.io.path.absolutePathString
 import org.javacs.kt.position.location
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import kotlin.io.path.writeText
 
 
@@ -38,12 +39,14 @@ fun goToDefinition(
         LOG.warn("Didn't find location for {} through source jars", target)
         val psi = target.findPsi()
         destination = location(target)
-        if(destination == null && configuration.compiler.lazyCompilation && file.parse.containingFile.toString().isNotEmpty()) {
-            throw KotlinFileNotCompiledYetException(file.parse.containingFile.toPath(), "Didn't find PSI location because file is not compiled yet")
-        }
 
         if (psi is KtNamedDeclaration) {
             destination = psi.nameIdentifier?.let(::location) ?: destination
+        }
+        if(destination == null && configuration.compiler.lazyCompilation) {
+            val jvmName = target.fqNameSafe.asString()
+            val possibleSourceFiles = cp.sourcesJvmClassNames.filter { it.jvmNames.contains(jvmName) }.map { it.sourceFile }
+            throw KotlinFilesNotCompiledYetException(possibleSourceFiles.toSet(), "Didn't find PSI location because files ${possibleSourceFiles.joinToString(",")} may not not compiled yet")
         }
     }
     return destination
