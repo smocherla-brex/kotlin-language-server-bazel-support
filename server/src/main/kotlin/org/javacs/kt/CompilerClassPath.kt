@@ -31,6 +31,7 @@ class CompilerClassPath(
     val packageSourceMappings = mutableSetOf<PackageSourceMapping>()
     val outputDirectory: File = Files.createTempDirectory("klsBuildOutput").toFile()
     val javaHome: String? = System.getProperty("java.home", null)
+    private var lazyCompilation: Boolean = false
 
     var compiler = Compiler(
         javaSourcePath,
@@ -171,6 +172,12 @@ class CompilerClassPath(
     private fun isBuildScript(file: Path): Boolean = file.fileName.toString().let { it == "pom.xml" || it == "build.gradle" || it == "build.gradle.kts" }
 
     private fun findJavaSourceFiles(root: Path): Set<Path> {
+        // If using lazy compilation, don't track the files in the transitive closure
+        // unless they're opened
+        if(config.lazyCompilation) {
+            return emptySet()
+        }
+
         val bazelOut = root.resolve("bazel-out")
         if(!Files.exists(bazelOut)) {
             return emptySet()

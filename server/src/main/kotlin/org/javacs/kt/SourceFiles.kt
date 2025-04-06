@@ -68,7 +68,8 @@ private class NotifySourcePath(private val sp: SourcePath) {
 class SourceFiles(
     private val sp: SourcePath,
     private val contentProvider: URIContentProvider,
-    private val scriptsConfig: ScriptsConfiguration
+    private val scriptsConfig: ScriptsConfiguration,
+    private val lazyCompilation: Boolean,
 ) {
     private val workspaceRoots = mutableSetOf<Path>()
     private var exclusions = SourceExclusions(workspaceRoots, scriptsConfig)
@@ -157,7 +158,13 @@ class SourceFiles(
 
     fun addWorkspaceRoot(root: Path) {
         LOG.info("Searching $root using exclusions: ${exclusions.excludedPatterns}")
-        val addSources = findSourceFiles(root)
+        val addSources = if(lazyCompilation) {
+            LOG.info("Lazy compilation enabled, files will be compiled on-demand.")
+            emptySet()
+        } else {
+            LOG.info("Lazy compilation disabled, all files in the transitive closure will be compiled.")
+            findSourceFiles(root)
+        }
 
         logAdded(addSources, root)
 
