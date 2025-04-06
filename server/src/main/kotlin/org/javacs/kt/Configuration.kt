@@ -43,7 +43,7 @@ public data class JVMConfiguration(
 public data class CompilerConfiguration(
     val jvm: JVMConfiguration = JVMConfiguration(),
     // whether to do lazy compilation, on demand whenever files are open-ed/referenced
-    var lazyCompilation: Boolean = true
+    var lazyCompilation: Boolean = false
 )
 
 public data class IndexingConfiguration(
