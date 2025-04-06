@@ -171,6 +171,12 @@ class CompilerClassPath(
     private fun isBuildScript(file: Path): Boolean = file.fileName.toString().let { it == "pom.xml" || it == "build.gradle" || it == "build.gradle.kts" }
 
     private fun findJavaSourceFiles(root: Path): Set<Path> {
+        // If using lazy compilation, don't track the files in the transitive closure
+        // unless they're opened
+        if(config.lazyCompilation) {
+            return emptySet()
+        }
+
         val bazelOut = root.resolve("bazel-out")
         if(!Files.exists(bazelOut)) {
             return emptySet()

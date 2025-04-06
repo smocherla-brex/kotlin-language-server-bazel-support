@@ -12,7 +12,8 @@ Only VSCode currently is supported/tested, but it may be possible to support oth
 This fork only focuses on Bazel support and making sure it works reliably. As a result
 - I had to remove any existing Gradle/Maven support as supporting all of them at the same time with the other changes was challenging.
 - This does not track all source files in the workspace by default for performance considerations. Only directories which are partially "synced"
- with the vscode extension are tracked and compiled to improve performance.
+ with the vscode extension are tracked and compiled to improve performance. Additionally, there's a "lazy" compilation mode where only files that are open
+ will be compiled and tracked rather than everything in the transitive closure of the packages that are synced.
 - Adapt many of the existing test cases and add a few ones to work with the Bazel implementation.
 - Attempt to compile files in batch rather than do it serially as it was done originally in the LSP presumably because there were errors from the TopDownAnalyzer
 - This has support for Go-to-definition and hover using pure source jars instead of decompiling (which is removed entirely).

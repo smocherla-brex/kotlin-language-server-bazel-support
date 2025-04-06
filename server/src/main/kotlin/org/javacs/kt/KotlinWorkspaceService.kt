@@ -114,6 +114,11 @@ class KotlinWorkspaceService(
                     cp.updateCompilerConfiguration()
                 }
 
+                get("lazyCompilation")?.asBoolean?.let{
+                    config.compiler.lazyCompilation = it
+                    cp.updateCompilerConfiguration()
+                }
+
                 // Update options for formatting
                 get("formatting")?.asJsonObject?.apply {
                     val formatting = config.formatting

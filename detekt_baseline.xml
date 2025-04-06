@@ -116,6 +116,7 @@
     <ID>ReturnCount:CompiledFile.kt$CompiledFile$fun referenceAtPoint(cursor: Int): Pair&lt;KtExpression, DeclarationDescriptor&gt;?</ID>
     <ID>ReturnCount:CompiledFile.kt$CompiledFile$fun typeAtPoint(cursor: Int): KotlinType?</ID>
     <ID>ReturnCount:CompiledFile.kt$CompiledFile$private fun getAllSuperclasses(descriptor: DeclarationDescriptor): Set&lt;ClassDescriptor&gt;</ID>
+    <ID>ReturnCount:CompilerClassPath.kt$CompilerClassPath$private fun findJavaSourceFiles(root: Path): Set&lt;Path&gt;</ID>
     <ID>ReturnCount:Completions.kt$private fun completeMembers(file: CompiledFile, cursor: Int, receiverExpr: KtExpression, unwrapNullable: Boolean = false): Sequence&lt;DeclarationDescriptor&gt;</ID>
     <ID>ReturnCount:Completions.kt$private fun findPartialIdentifier(file: CompiledFile, cursor: Int): String</ID>
     <ID>ReturnCount:Completions.kt$private fun implicitMembers(scope: HierarchicalScope): Sequence&lt;DeclarationDescriptor&gt;</ID>
