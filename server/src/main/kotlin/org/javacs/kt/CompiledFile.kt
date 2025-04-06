@@ -98,7 +98,6 @@ class CompiledFile(
      */
     fun referenceExpressionAtPoint(cursor: Int): Pair<KtExpression, DeclarationDescriptor>? {
         val path = parse.containingFile.toPath()
-        LOG.info("Path: {}", path.absolutePathString())
         return referenceFromContext(cursor, path, compile)
     }
 
