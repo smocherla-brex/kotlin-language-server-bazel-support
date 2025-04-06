@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
 import java.net.URI
 import java.io.Closeable
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 

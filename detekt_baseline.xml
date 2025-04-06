@@ -43,7 +43,6 @@
     <ID>ForbiddenComment:KotlinDebugAdapter.kt$KotlinDebugAdapter$// TODO: This is a workaround for https://github.com/eclipse/lsp4j/issues/229</ID>
     <ID>ForbiddenComment:KotlinDebugAdapter.kt$KotlinDebugAdapter$// TODO: Use actual exitCode instead</ID>
     <ID>ForbiddenComment:KotlinTextDocumentService.kt$KotlinTextDocumentService$// TODO: Investigate when to recompile</ID>
-    <ID>ForbiddenComment:KotlinTextDocumentService.kt$KotlinTextDocumentService$// TODO: comment this in code, we need to use DI and abstract this out</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: any way can repeat less code between this and the getAbstractMembersStubs in the ImplementAbstractMembersQuickfix?</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: does not seem to handle the implicit Any and Object super types that well. Need to find out if that is easily solvable. Finds the methods from them if any super class or interface is present</ID>
     <ID>ForbiddenComment:OverrideMembers.kt$// TODO: look further into this</ID>
@@ -101,6 +100,7 @@
     <ID>MagicNumber:WithStdlibResolver.kt$StdLibItem.Companion$3</ID>
     <ID>MagicNumber:WithStdlibResolver.kt$StdLibItem.Companion$4</ID>
     <ID>MagicNumber:WithStdlibResolver.kt$StdLibItem.Companion$5</ID>
+    <ID>MatchingDeclarationName:Exceptions.kt$KotlinFilesNotCompiledYetException : Exception</ID>
     <ID>MatchingDeclarationName:Main.kt$Args</ID>
     <ID>MayBeConst:LoggingInputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
     <ID>MayBeConst:LoggingOutputStream.kt$private val MESSAGE_FLUSH_MIN_LENGTH = 20</ID>
@@ -132,6 +132,7 @@
     <ID>ReturnCount:Hovers.kt$fun processSourceJar(mapping: PackageSourceMapping): String?</ID>
     <ID>ReturnCount:Hovers.kt$private fun typeHoverAt(file: CompiledFile, cursor: Int): Hover?</ID>
     <ID>ReturnCount:JDIDebuggee.kt$JDIDebuggee$private fun setBreakpointAtType(refType: ReferenceType, lineNumber: Long): Boolean</ID>
+    <ID>ReturnCount:KotlinTextDocumentService.kt$KotlinTextDocumentService$private inline fun &lt;T&gt; withLazyCompilationRetry( fallback: () -&gt; T, block: () -&gt; T ): T</ID>
     <ID>ReturnCount:OverrideMembers.kt$private fun parametersMatch( function: KtNamedFunction, functionDescriptor: FunctionDescriptor ): Boolean</ID>
     <ID>ReturnCount:Parser.kt$SourceJarParser$fun findSourceFileInfo( sourcesJarPath: String, packageName: String, className: String ): SourceFileInfo?</ID>
     <ID>ReturnCount:Position.kt$fun location(declaration: DeclarationDescriptor): Location?</ID>
@@ -157,6 +158,7 @@
     <ID>TooGenericExceptionCaught:ClassPathResolver.kt$ClassPathResolver$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Compiler.kt$CompilationEnvironment$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Completions.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:KotlinTextDocumentService.kt$KotlinTextDocumentService$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:Position.kt$e: NullPointerException</ID>
     <ID>TooGenericExceptionCaught:SourcePath.kt$SourcePath$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:SymbolIndex.kt$SymbolIndex$e: Exception</ID>
@@ -237,6 +239,7 @@
     <ID>WildcardImport:KotlinProtocolExtensionService.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:KotlinProtocolExtensions.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:KotlinTextDocumentService.kt$import org.eclipse.lsp4j.*</ID>
+    <ID>WildcardImport:KotlinTextDocumentService.kt$import org.javacs.kt.util.*</ID>
     <ID>WildcardImport:KotlinWorkspaceService.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:Rename.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:RenderCompletionItem.kt$import org.jetbrains.kotlin.descriptors.*</ID>
