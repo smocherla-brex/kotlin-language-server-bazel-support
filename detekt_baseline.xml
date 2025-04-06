@@ -59,6 +59,7 @@
     <ID>ForbiddenComment:VariableTreeNode.kt$VariableTreeNode$// TODO: Setters for values?</ID>
     <ID>FunctionOnlyReturningConstant:Example.kt$fun example()</ID>
     <ID>LongMethod:Compiler.kt$CompilationEnvironment.&lt;no name provided&gt;.&lt;no name provided&gt;$override fun resolve(scriptContents: ScriptContents, environment: Environment)</ID>
+    <ID>LongMethod:KotlinLanguageServer.kt$KotlinLanguageServer$override fun initialize(params: InitializeParams): CompletableFuture&lt;InitializeResult&gt;</ID>
     <ID>LongMethod:SemanticTokens.kt$private fun elementToken(element: PsiElement, bindingContext: BindingContext): SemanticToken?</ID>
     <ID>LongParameterList:CompiledFile.kt$CompiledFile$( val content: String, val parse: KtFile, val compile: BindingContext, val module: ModuleDescriptor, val sourcePath: Collection&lt;KtFile&gt;, val classPath: CompilerClassPath, val isScript: Boolean = false, val isTestFile: Boolean = false, val kind: CompilationKind = CompilationKind.DEFAULT )</ID>
     <ID>LongParameterList:GoToDefinition.kt$( workspaceRoot: Path, sourceJar: String, packageName: String, className: String, symbolName: String, compiler: Compiler, tempDir: TemporaryDirectory )</ID>
@@ -235,7 +236,6 @@
     <ID>WildcardImport:JavaTypeConverter.kt$import com.intellij.psi.*</ID>
     <ID>WildcardImport:KotlinDebugAdapter.kt$import org.eclipse.lsp4j.debug.*</ID>
     <ID>WildcardImport:KotlinLanguageServer.kt$import org.eclipse.lsp4j.*</ID>
-    <ID>WildcardImport:KotlinLanguageServer.kt$import org.javacs.kt.externalsources.*</ID>
     <ID>WildcardImport:KotlinProtocolExtensionService.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:KotlinProtocolExtensions.kt$import org.eclipse.lsp4j.*</ID>
     <ID>WildcardImport:KotlinTextDocumentService.kt$import org.eclipse.lsp4j.*</ID>

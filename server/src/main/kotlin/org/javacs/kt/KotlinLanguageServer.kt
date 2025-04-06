@@ -9,14 +9,16 @@ import org.eclipse.lsp4j.services.LanguageServer
 import org.eclipse.lsp4j.services.NotebookDocumentService
 import org.javacs.kt.command.ALL_COMMANDS
 import org.javacs.kt.database.DatabaseService
+import org.javacs.kt.externalsources.ClassContentProvider
+import org.javacs.kt.externalsources.ClassPathSourceArchiveProvider
+import org.javacs.kt.externalsources.CompositeSourceArchiveProvider
+import org.javacs.kt.externalsources.JdkSourceArchiveProvider
 import org.javacs.kt.progress.LanguageClientProgress
 import org.javacs.kt.progress.Progress
 import org.javacs.kt.semantictokens.semanticTokensLegend
 import org.javacs.kt.util.AsyncExecutor
 import org.javacs.kt.util.TemporaryDirectory
 import org.javacs.kt.util.parseURI
-import org.javacs.kt.externalsources.*
-import org.javacs.kt.index.SymbolIndex
 import java.io.Closeable
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
@@ -94,9 +96,14 @@ class KotlinLanguageServer(
         serverCapabilities.executeCommandProvider = ExecuteCommandOptions(ALL_COMMANDS)
         serverCapabilities.documentHighlightProvider = Either.forLeft(true)
 
-        val storagePath = getStoragePath(params)
-        LOG.info { "Storage path: $storagePath" }
-        databaseService.setup(storagePath)
+        val initializationOptions = getInitializationOptions(params)
+        initializationOptions?.let {
+            LOG.info { "Storage path: ${initializationOptions.storagePath}" }
+            databaseService.setup(initializationOptions.storagePath)
+            LOG.info("Lazy compilation - ${it.lazyCompilation}")
+            config.compiler.lazyCompilation = it.lazyCompilation
+        }
+
 
         val clientCapabilities = params.capabilities
         config.completion.snippets.enabled = clientCapabilities?.textDocument?.completion?.completionItem?.snippetSupport ?: false
