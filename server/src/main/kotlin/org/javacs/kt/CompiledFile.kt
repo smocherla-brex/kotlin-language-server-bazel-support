@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 class CompiledFile(
     val content: String,

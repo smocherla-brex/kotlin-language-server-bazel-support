@@ -44,7 +44,7 @@ class PackageSourceMappingEntryEntity(id: EntityID<Int>) : IntEntity(id) {
 
 private object SourceJVMClassNamesEntry : IntIdTable() {
     val sourceFile = varchar("sourcefile", length = MAX_PATH_LENGTH)
-    val jvmClassNames = varchar("jvmclassnames", length = MAX_PATH_LENGTH).nullable()
+    val jvmClassNames = text("jvmclassnames").nullable()
 }
 
 class SourceJVMClassNamesEntryEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -166,7 +166,7 @@ internal class CachedClassPathResolver(
     init {
         transaction(db) {
             SchemaUtils.createMissingTablesAndColumns(
-                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry, PackageSourceJarMappingEntry
+                ClassPathMetadataCache, ClassPathCacheEntry, BuildScriptClassPathCacheEntry, PackageSourceJarMappingEntry, SourceJVMClassNamesEntry
             )
         }
     }

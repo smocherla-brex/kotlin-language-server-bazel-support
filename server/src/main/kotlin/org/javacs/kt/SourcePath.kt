@@ -19,6 +19,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.net.URI
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.io.path.readText
 
 class SourcePath(
     private val cp: CompilerClassPath,
@@ -351,6 +352,13 @@ class SourcePath(
             LOG.info("Refreshing source path")
             files.values.forEach { it.clean() }
             files.values.forEach { it.compile() }
+        }
+    }
+
+    fun addPaths(paths: Set<Path>) {
+        paths.forEach {
+            put(it.toUri(), it.readText(), null, false)
+            save(it.toUri())
         }
     }
 

@@ -4,6 +4,7 @@ import org.eclipse.lsp4j.Location
 import java.nio.file.Path
 import org.javacs.kt.CompiledFile
 import org.javacs.kt.CompilerClassPath
+import org.javacs.kt.Configuration
 import org.javacs.kt.LOG
 import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.sourcejars.SourceJarParser
@@ -16,6 +17,7 @@ import java.nio.file.Files
 import kotlin.io.path.absolutePathString
 import org.javacs.kt.position.location
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import kotlin.io.path.writeText
 
 
@@ -23,7 +25,8 @@ fun goToDefinition(
     file: CompiledFile,
     cursor: Int,
     tempDir: TemporaryDirectory,
-    cp: CompilerClassPath
+    cp: CompilerClassPath,
+    configuration: Configuration
 ): Location? {
     val (_, target) = file.referenceExpressionAtPoint(cursor) ?: return null
 
@@ -39,6 +42,18 @@ fun goToDefinition(
 
         if (psi is KtNamedDeclaration) {
             destination = psi.nameIdentifier?.let(::location) ?: destination
+        }
+        if(destination == null && configuration.compiler.lazyCompilation) {
+            // This might only work for classes and functions for now
+            val jvmName = if(target is FunctionDescriptor) {
+                target.containingDeclaration.fqNameSafe.asString()
+            } else {
+                target.fqNameSafe.asString()
+            }
+            val possibleSourceFiles = cp.sourcesJvmClassNames.filter { it.jvmNames.contains(jvmName) || it.jvmNames.any { name ->
+                name.contains(jvmName)
+            }}.map { it.sourceFile }
+            throw KotlinFilesNotCompiledYetException(possibleSourceFiles.toSet(), "Didn't find PSI location because files ${possibleSourceFiles.joinToString(",")} may not not compiled yet")
         }
     }
     return destination

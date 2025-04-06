@@ -94,9 +94,11 @@ fun location(declaration: DeclarationDescriptor): Location? {
 
     if (declaration is DeclarationDescriptorWithSource) {
         val sourceFile = declaration.source.containingFile
+        LOG.info("Source file is ${sourceFile}")
         when (sourceFile) {
             is PsiSourceFile -> {
                 val file = sourceFile.psiFile.toURIString()
+                LOG.info("Source path is ${file}")
                 return Location(file, Range(Position(0, 0), Position(0, 0)))
             }
             SourceFile.NO_SOURCE_FILE -> Unit // If no source file is present, do nothing

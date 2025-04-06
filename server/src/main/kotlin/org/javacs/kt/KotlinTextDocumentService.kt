@@ -20,14 +20,7 @@ import org.javacs.kt.rename.renameSymbol
 import org.javacs.kt.highlight.documentHighlightsAt
 import org.javacs.kt.inlayhints.provideHints
 import org.javacs.kt.symbols.documentSymbols
-import org.javacs.kt.util.AsyncExecutor
-import org.javacs.kt.util.Debouncer
-import org.javacs.kt.util.TemporaryDirectory
-import org.javacs.kt.util.describeURI
-import org.javacs.kt.util.describeURIs
-import org.javacs.kt.util.filePath
-import org.javacs.kt.util.noResult
-import org.javacs.kt.util.parseURI
+import org.javacs.kt.util.*
 import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
 import java.net.URI
 import java.io.Closeable
@@ -128,13 +121,46 @@ class KotlinTextDocumentService(
     override fun definition(position: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> = async.compute {
         reportTime {
             LOG.info("Go-to-definition at {}", describePosition(position))
-
-            val (file, cursor) = recover(position, Recompile.NEVER) ?: return@compute Either.forLeft(emptyList())
-            goToDefinition(file, cursor, tempDirectory, cp)
-                ?.let(::listOf)
-                ?.let { Either.forLeft<List<Location>, List<LocationLink>>(it) }
-                ?: noResult("Couldn't find definition at ${describePosition(position)}", Either.forLeft(emptyList()))
+            if(config.compiler.lazyCompilation) {
+                return@compute withLazyCompilationRetry(
+                    fallback = { Either.forLeft(emptyList()) },
+                    block = { doDefinition(position) }
+                )
+            }
+            return@compute doDefinition(position)
         }
+    }
+
+    private inline fun <T> withLazyCompilationRetry(
+        fallback: () -> T,
+        block: () -> T
+    ): T {
+        try {
+            return block()
+        } catch (e: KotlinFilesNotCompiledYetException) {
+            val files = e.files.map { cp.workspaceRoots.first().resolve(it) }.toSet()
+            if(files.size == 0) return fallback()
+            try {
+                LOG.info("Compilation will be done on-demand for ${files.map { it.fileName }}")
+                sp.addPaths(files)
+                sp.compileFiles(files.map { it.toUri() })
+                sp.refresh()
+                sp.refreshDependencyIndexes()
+                return block()
+            } catch (ex: Exception) {
+                LOG.warn("Failed during lazy compilation or second attempt", ex)
+                return fallback()
+            }
+        }
+    }
+
+
+    private fun doDefinition(position: DefinitionParams, recompile: Recompile = Recompile.NEVER): Either<List<Location>, List<LocationLink>> {
+        val (file, cursor) = recover(position, recompile) ?: return Either.forLeft(emptyList())
+        return goToDefinition(file, cursor, tempDirectory, cp, config)
+            ?.let(::listOf)
+            ?.let { Either.forLeft<List<Location>, List<LocationLink>>(it) }
+            ?: noResult("Couldn't find definition at ${describePosition(position)}", Either.forLeft(emptyList()))
     }
 
     override fun rangeFormatting(params: DocumentRangeFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
@@ -187,15 +213,6 @@ class KotlinTextDocumentService(
         LOG.info { "Linting $uri" }
         sf.open(uri, params.textDocument.text, params.textDocument.version)
         lintNow(uri)
-
-        // TODO: comment this in code, we need to use DI and abstract this out
-        // for tests to pass
-        // notify client that linting or compiling was done
-//        val documentNotification = mapOf("uri" to uri, "kind" to "end")
-//        val params = ProgressParams()
-//        params.token = Either.forLeft("bazelKLS/kotlinAnalysis")
-//        params.value = Either.forRight(documentNotification)
-//        client.notifyProgress(params)
     }
 
     override fun didSave(params: DidSaveTextDocumentParams) {
