@@ -140,6 +140,7 @@ class KotlinTextDocumentService(
             return block()
         } catch (e: KotlinFilesNotCompiledYetException) {
             val files = e.files.map { cp.workspaceRoots.first().resolve(it) }.toSet()
+            if(files.size == 0) return fallback()
             try {
                 LOG.info("Compilation will be done on-demand for ${files.map { it.fileName }}")
                 sp.addPaths(files)

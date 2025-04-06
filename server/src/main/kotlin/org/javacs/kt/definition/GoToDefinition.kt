@@ -44,8 +44,15 @@ fun goToDefinition(
             destination = psi.nameIdentifier?.let(::location) ?: destination
         }
         if(destination == null && configuration.compiler.lazyCompilation) {
-            val jvmName = target.fqNameSafe.asString()
-            val possibleSourceFiles = cp.sourcesJvmClassNames.filter { it.jvmNames.contains(jvmName) }.map { it.sourceFile }
+            // This might only work for classes for now
+            val jvmName = if(target is FunctionDescriptor) {
+                target.containingDeclaration.fqNameSafe.asString()
+            } else {
+                target.fqNameSafe.asString()
+            }
+            val possibleSourceFiles = cp.sourcesJvmClassNames.filter { it.jvmNames.contains(jvmName) || it.jvmNames.any { name ->
+                name.contains(jvmName)
+            }}.map { it.sourceFile }
             throw KotlinFilesNotCompiledYetException(possibleSourceFiles.toSet(), "Didn't find PSI location because files ${possibleSourceFiles.joinToString(",")} may not not compiled yet")
         }
     }
