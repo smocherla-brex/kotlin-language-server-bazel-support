@@ -69,12 +69,13 @@ class SourceFiles(
     private val sp: SourcePath,
     private val contentProvider: URIContentProvider,
     private val scriptsConfig: ScriptsConfiguration,
-    private val lazyCompilation: Boolean,
 ) {
     private val workspaceRoots = mutableSetOf<Path>()
     private var exclusions = SourceExclusions(workspaceRoots, scriptsConfig)
     private val files = NotifySourcePath(sp)
     private val open = mutableSetOf<URI>()
+    var lazyCompilation: Boolean = false
+
 
     fun open(uri: URI, content: String, version: Int) {
         if (isIncluded(uri)) {
