@@ -4,6 +4,7 @@ import org.eclipse.lsp4j.Location
 import java.nio.file.Path
 import org.javacs.kt.CompiledFile
 import org.javacs.kt.CompilerClassPath
+import org.javacs.kt.Configuration
 import org.javacs.kt.LOG
 import org.javacs.kt.classpath.PackageSourceMapping
 import org.javacs.kt.sourcejars.SourceJarParser
@@ -23,7 +24,8 @@ fun goToDefinition(
     file: CompiledFile,
     cursor: Int,
     tempDir: TemporaryDirectory,
-    cp: CompilerClassPath
+    cp: CompilerClassPath,
+    configuration: Configuration
 ): Location? {
     val (_, target) = file.referenceExpressionAtPoint(cursor) ?: return null
 
@@ -36,6 +38,9 @@ fun goToDefinition(
         LOG.warn("Didn't find location for {} through source jars", target)
         val psi = target.findPsi()
         destination = location(target)
+        if(destination == null && configuration.compiler.lazyCompilation && file.parse.containingFile.toString().isNotEmpty()) {
+            throw KotlinFileNotCompiledYetException(file.parse.containingFile.toPath(), "Didn't find PSI location because file is not compiled yet")
+        }
 
         if (psi is KtNamedDeclaration) {
             destination = psi.nameIdentifier?.let(::location) ?: destination
