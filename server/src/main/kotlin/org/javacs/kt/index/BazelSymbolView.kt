@@ -1,6 +1,5 @@
 package org.javacs.kt.index
 
-import org.javacs.kt.LOG
 import org.javacs.kt.classpath.PackageSourceMapping
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor

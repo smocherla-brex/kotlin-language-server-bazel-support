@@ -209,22 +209,4 @@ class SymbolIndex(
                 extensionReceiverType = it.extensionReceiverType?.let(::FqName)
             ) }
     }
-
-    private fun allDescriptors(module: ModuleDescriptor, exclusions: Sequence<DeclarationDescriptor>): Sequence<DeclarationDescriptor> = allPackages(module)
-        .map(module::getPackage)
-        .flatMap {
-            try {
-                it.memberScope.getContributedDescriptors(
-                    DescriptorKindFilter.ALL
-                ) { name -> !exclusions.any { declaration -> declaration.name == name } }
-            } catch (e: IllegalStateException) {
-                LOG.warn("Could not query descriptors in package $it")
-                emptyList()
-            }
-        }
-
-    private fun allPackages(module: ModuleDescriptor, pkgName: FqName = FqName.ROOT): Sequence<FqName> = module
-        .getSubPackagesOf(pkgName) { it.toString() != "META-INF" }
-        .asSequence()
-        .flatMap { sequenceOf(it) + allPackages(module, it) }
 }
