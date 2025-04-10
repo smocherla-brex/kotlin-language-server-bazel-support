@@ -104,10 +104,18 @@ class SymbolIndex(
         progressFactory.create("Indexing symbols").thenApply { progress ->
             try {
                 transaction(db) {
+                    // Keeping track of progress
+                    var processedSymbols = 0
+                    var batchCount = 0
+
                     // Remove everything first.
                     Symbols.deleteAll()
                     // Add new ones.
-                    addDeclarationsInBatch(descriptors)
+                    addDeclarationsInBatch(descriptors, onBatchProcessed = { batchSize ->
+                        batchCount++
+                        processedSymbols += batchSize
+                        progress.update( "Indexed symbols - Batch #$batchCount ($processedSymbols total symbols)", null)
+                    })
 
                     val finished = System.currentTimeMillis()
                     val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
@@ -122,7 +130,7 @@ class SymbolIndex(
         }
     }
 
-    private fun addDeclarationsInBatch(declarations: Sequence<DeclarationDescriptor>, batchSize: Int = 1000) {
+    private fun addDeclarationsInBatch(declarations: Sequence<DeclarationDescriptor>, batchSize: Int = 1000, onBatchProcessed: (Int) -> Unit) {
         declarations
             .map { declaration ->
                 val (descriptorFqn, extensionReceiverFqn) = getFqNames(declaration)
@@ -140,6 +148,7 @@ class SymbolIndex(
                     this[Symbols.visibility] = declaration.accept(ExtractSymbolVisibility, Unit).rawValue
                     this[Symbols.extensionReceiverType] = extensionReceiverFqn?.toString()
                 }
+                onBatchProcessed(batch.size)
             }
     }
 
@@ -151,7 +160,7 @@ class SymbolIndex(
         try {
             transaction(db) {
                 removeDeclarations(remove)
-                addDeclarationsInBatch(add)
+                addDeclarationsInBatch(add, onBatchProcessed = { batchSize -> })
 
                 val finished = System.currentTimeMillis()
                 val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]

@@ -64,7 +64,7 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
             }
         }
 
-        LOG.info("Found source jar/package mapping files: {}", packageSourceMappings)
+        LOG.debug("Found source jar/package mapping files: {}", packageSourceMappings)
         return packageSourceMappings
     }
 
