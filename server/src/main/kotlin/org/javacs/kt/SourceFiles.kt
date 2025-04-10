@@ -208,7 +208,7 @@ class SourceFiles(
                 // java source files are passed separately. If we pass Java source files directly,
                 // we run into an obscure "Unable to find script compilation configuration for the script KtFile" error
                 .filter { it.path.endsWith(".kt") && !it.path.startsWith("external/") }
-                .map { Paths.get(it.path).toUri() }
+                .map { root.resolve(it.path).toUri() }
                 .toSet()
         }
     }

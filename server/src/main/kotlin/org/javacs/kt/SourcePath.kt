@@ -303,7 +303,7 @@ class SourcePath(
         if (module != null) {
             refreshBazelIndexes(module)
         } else {
-            LOG.warn("No compiled module was mound, all bazel symbols may not be indexed..")
+            LOG.warn("No compiled module was found, all bazel symbols may not be indexed..")
         }
     }
 
@@ -326,13 +326,10 @@ class SourcePath(
      */
     private fun refreshBazelIndexes(module: ModuleDescriptor) {
         if (indexEnabled) {
-            val module = files.values.firstOrNull()?.module
-            if (module != null) {
-                LOG.info("Refreshing full bazel symbol view...")
-                val bazelSymbolView = BazelSymbolView(module, cp.packageSourceMappings)
-                val declarations = bazelSymbolView.getAllTopLevelDeclarations()
-                index.refresh(declarations)
-            }
+            LOG.info("Refreshing full bazel symbol view...")
+            val bazelSymbolView = BazelSymbolView(module, cp.packageSourceMappings)
+            val declarations = bazelSymbolView.getAllTopLevelDeclarations()
+            index.refresh(declarations)
         }
     }
 

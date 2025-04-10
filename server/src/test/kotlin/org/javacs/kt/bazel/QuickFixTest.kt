@@ -10,7 +10,7 @@ import org.junit.Test
 class QuickFixTest: BazelLanguageServerTextFixture("src/QuickFix.kt", indexingEnabled = true) {
 
     @Test
-    @Ignore("Disabled because github actions doesn't have DB setup yet")
+    @Ignore("disabled because CI doesn't have DB support yet, re-enable in a follow-up")
     fun TestMissingImportsFix() {
         val only = listOf(CodeActionKind.QuickFix)
         val params = codeActionParams("src/QuickFix.kt", 3, 9, 3, 10, diagnostics,only)
