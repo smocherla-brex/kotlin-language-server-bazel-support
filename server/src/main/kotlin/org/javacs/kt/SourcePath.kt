@@ -302,6 +302,8 @@ class SourcePath(
         val module = files.values.firstOrNull() { it.module != null }?.module
         if (module != null) {
             refreshBazelIndexes(module)
+        } else {
+            LOG.warn("No compiled module was mound, all bazel symbols may not be indexed..")
         }
     }
 
@@ -319,14 +321,17 @@ class SourcePath(
     }
 
 
+    /**
+     * Triggers a full refresh of the Bazel symbol, all top-level declarations are extracted and stored in the symbol index
+     */
     private fun refreshBazelIndexes(module: ModuleDescriptor) {
         if (indexEnabled) {
             val module = files.values.firstOrNull()?.module
             if (module != null) {
                 LOG.info("Refreshing full bazel symbol view...")
                 val bazelSymbolView = BazelSymbolView(module, cp.packageSourceMappings)
-                val declarations = bazelSymbolView.getAllDeclarations()
-                index.refresh(declarations.asSequence())
+                val declarations = bazelSymbolView.getAllTopLevelDeclarations()
+                index.refresh(declarations)
             }
         }
     }

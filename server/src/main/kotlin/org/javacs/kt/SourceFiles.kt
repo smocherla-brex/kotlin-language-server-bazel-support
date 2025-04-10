@@ -161,7 +161,7 @@ class SourceFiles(
         LOG.info("Searching $root using exclusions: ${exclusions.excludedPatterns}")
         val addSources = if(lazyCompilation) {
             LOG.info("Lazy compilation enabled, files will be compiled on-demand.")
-            emptySet()
+            open
         } else {
             LOG.info("Lazy compilation disabled, all files in the transitive closure will be compiled.")
             findSourceFiles(root)
@@ -194,6 +194,7 @@ class SourceFiles(
         if(!Files.exists(bazelOut)) {
             return emptySet()
         }
+
         // TODO: we walk bazel-out here again to collect the files emitted by the aspect
         // this is redundant as we also do it in classpath resolver, so it might be worth unifying the logic
         // to reduce filesystem calls
@@ -207,7 +208,7 @@ class SourceFiles(
                 // java source files are passed separately. If we pass Java source files directly,
                 // we run into an obscure "Unable to find script compilation configuration for the script KtFile" error
                 .filter { it.path.endsWith(".kt") && !it.path.startsWith("external/") }
-                .map { root.resolve(it.path).toUri() }
+                .map { Paths.get(it.path).toUri() }
                 .toSet()
         }
     }

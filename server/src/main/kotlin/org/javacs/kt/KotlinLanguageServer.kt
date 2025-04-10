@@ -139,6 +139,8 @@ class KotlinLanguageServer(
             if (refreshed) {
                 progress?.update("$progressPrefix: Refreshing source path", progressPercent)
                 sourcePath.refresh()
+                LOG.info("Refreshing bazel symbol indexes...")
+                sourcePath.refreshBazelDependencyIndexes()
             }
         }
         progress?.close()

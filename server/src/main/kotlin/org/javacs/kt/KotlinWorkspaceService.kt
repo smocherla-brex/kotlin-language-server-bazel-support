@@ -57,6 +57,7 @@ class KotlinWorkspaceService(
                 cp.refresh()
                 sf.addWorkspaceRoot(cp.workspaceRoots.first())
                 sp.refresh()
+                sp.refreshBazelDependencyIndexes()
             }
             KOTEST_TESTS_INFO -> {
                 val fileUri = gson.fromJson(args[0] as JsonElement, String::class.java)
