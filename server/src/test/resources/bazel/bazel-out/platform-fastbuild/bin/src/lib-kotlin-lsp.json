@@ -13,6 +13,9 @@
   }, {
     "path": "src/Foo.kt",
     "jvmClassNames": ["bazel.lsp_fixtures.App$Companion", "bazel.lsp_fixtures.App"]
+  }, {
+      "path": "src/QuickFix.kt",
+      "jvmClassNames": []
   }],
   "packageSourceMappings": [{
     "packageName": "bazel.lsp_fixtures",

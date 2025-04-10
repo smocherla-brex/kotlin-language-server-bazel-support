@@ -50,7 +50,7 @@ abstract class LanguageServerTestFixture(
             parameterHints = true
             chainedHints = true
         }
-        languageServer.sourcePath.indexEnabled = false
+        languageServer.sourcePath.indexEnabled = true
         languageServer.connect(this)
         languageServer.initialize(init).join()
 

@@ -97,21 +97,21 @@ class SymbolIndex(
     }
 
     /** Rebuilds the entire index. May take a while. */
-    fun refresh(module: ModuleDescriptor, exclusions: Sequence<DeclarationDescriptor>) {
+    fun refresh(descriptors: Sequence<DeclarationDescriptor>) {
         val started = System.currentTimeMillis()
-        LOG.info("Updating full symbol index...")
+        LOG.info("Updating full bazel symbol index...")
 
-        progressFactory.create("Indexing").thenApplyAsync { progress ->
+        progressFactory.create("Indexing symbols").thenApply { progress ->
             try {
                 transaction(db) {
                     // Remove everything first.
                     Symbols.deleteAll()
                     // Add new ones.
-                    addDeclarationsInBatch(allDescriptors(module, exclusions))
+                    addDeclarationsInBatch(descriptors)
 
                     val finished = System.currentTimeMillis()
                     val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
-                    LOG.info("Updated full symbol index in ${finished - started} ms! (${count} symbol(s))")
+                    LOG.info("Updated full bazel symbol index in ${finished - started} ms! (${count} symbol(s))")
                 }
             } catch (e: Exception) {
                 LOG.error("Error while updating symbol index")
