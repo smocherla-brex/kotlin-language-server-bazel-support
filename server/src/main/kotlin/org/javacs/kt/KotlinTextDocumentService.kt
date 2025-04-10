@@ -145,7 +145,6 @@ class KotlinTextDocumentService(
                 sp.addPaths(files)
                 sp.compileFiles(files.map { it.toUri() })
                 sp.refresh()
-                sp.refreshBazelDependencyIndexes()
                 return block()
             } catch (ex: Exception) {
                 LOG.warn("Failed during lazy compilation or second attempt", ex)
