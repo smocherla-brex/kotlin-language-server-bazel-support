@@ -10,7 +10,8 @@ import java.util.concurrent.CompletableFuture
 
 abstract class LanguageServerTestFixture(
     relativeWorkspaceRoot: String,
-    config: Configuration = Configuration()
+    config: Configuration = Configuration(),
+    val indexingEnabled: Boolean = false,
 ) : LanguageClient {
     val workspaceRoot = absoluteWorkspaceRoot(relativeWorkspaceRoot)
     val languageServer = createLanguageServer(config)
@@ -50,7 +51,7 @@ abstract class LanguageServerTestFixture(
             parameterHints = true
             chainedHints = true
         }
-        languageServer.sourcePath.indexEnabled = true
+        languageServer.sourcePath.indexEnabled = indexingEnabled
         languageServer.connect(this)
         languageServer.initialize(init).join()
 
@@ -195,8 +196,9 @@ open class SingleFileTestFixture(
 
 open class BazelLanguageServerTextFixture(
     val file: String,
-    config: Configuration = Configuration()
-): LanguageServerTestFixture("bazel", config) {
+    config: Configuration = Configuration(),
+    indexingEnabled: Boolean = false,
+): LanguageServerTestFixture("bazel", config, indexingEnabled) {
     @Before fun openFile() {
         open(file)
 

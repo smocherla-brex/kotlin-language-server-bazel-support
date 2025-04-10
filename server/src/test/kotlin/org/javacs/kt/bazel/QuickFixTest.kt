@@ -1,14 +1,12 @@
 package org.javacs.kt.bazel
 
 import org.eclipse.lsp4j.CodeActionKind
-import org.eclipse.lsp4j.CodeActionParams
-import org.eclipse.lsp4j.Diagnostic
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
 import org.javacs.kt.BazelLanguageServerTextFixture
 import org.junit.Test
 
-class QuickFixTest: BazelLanguageServerTextFixture("src/QuickFix.kt") {
+class QuickFixTest: BazelLanguageServerTextFixture("src/QuickFix.kt", indexingEnabled = true) {
 
     @Test
     fun TestMissingImportsFix() {
