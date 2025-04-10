@@ -9,7 +9,9 @@ import org.javacs.kt.index.SymbolIndex
 import org.javacs.kt.progress.Progress
 import com.intellij.lang.Language
 import org.javacs.kt.database.DatabaseService
+import org.javacs.kt.index.BazelSymbolView
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.CompositeBindingContext
@@ -296,13 +298,12 @@ class SourcePath(
         files.keys.forEach { save(it) }
     }
 
-    fun refreshDependencyIndexes() {
-        LOG.info("Refreshing dependency indices...")
-        compileAllFiles()
-
-        val module = files.values.first { it.module != null }.module
+    fun refreshBazelDependencyIndexes() {
+        val module = files.values.firstOrNull() { it.module != null }?.module
         if (module != null) {
-            refreshDependencyIndexes(module)
+            refreshBazelIndexes(module)
+        } else {
+            LOG.warn("No compiled module was found, all bazel symbols may not be indexed..")
         }
     }
 
@@ -319,13 +320,16 @@ class SourcePath(
         }
     }
 
+
     /**
-     * Refreshes the indexes. If already done, refreshes only the declarations in the files that were changed.
+     * Triggers a full refresh of the Bazel symbol, all top-level declarations are extracted and stored in the symbol index
      */
-    private fun refreshDependencyIndexes(module: ModuleDescriptor) = indexAsync.execute {
+    private fun refreshBazelIndexes(module: ModuleDescriptor) {
         if (indexEnabled) {
-            val declarations = getDeclarationDescriptors(files.values)
-            index.refresh(module, declarations)
+            LOG.info("Refreshing full bazel symbol view...")
+            val bazelSymbolView = BazelSymbolView(module, cp.packageSourceMappings)
+            val declarations = bazelSymbolView.getAllTopLevelDeclarations()
+            index.refresh(declarations)
         }
     }
 

@@ -97,21 +97,29 @@ class SymbolIndex(
     }
 
     /** Rebuilds the entire index. May take a while. */
-    fun refresh(module: ModuleDescriptor, exclusions: Sequence<DeclarationDescriptor>) {
+    fun refresh(descriptors: Sequence<DeclarationDescriptor>) {
         val started = System.currentTimeMillis()
-        LOG.info("Updating full symbol index...")
+        LOG.info("Updating full bazel symbol index...")
 
-        progressFactory.create("Indexing").thenApplyAsync { progress ->
+        progressFactory.create("Indexing symbols").thenApply { progress ->
             try {
                 transaction(db) {
+                    // Keeping track of progress
+                    var processedSymbols = 0
+                    var batchCount = 0
+
                     // Remove everything first.
                     Symbols.deleteAll()
                     // Add new ones.
-                    addDeclarationsInBatch(allDescriptors(module, exclusions))
+                    addDeclarationsInBatch(descriptors, onBatchProcessed = { batchSize ->
+                        batchCount++
+                        processedSymbols += batchSize
+                        progress.update( "Indexed symbols - Batch #$batchCount ($processedSymbols total symbols)", null)
+                    })
 
                     val finished = System.currentTimeMillis()
                     val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
-                    LOG.info("Updated full symbol index in ${finished - started} ms! (${count} symbol(s))")
+                    LOG.info("Updated full bazel symbol index in ${finished - started} ms! (${count} symbol(s))")
                 }
             } catch (e: Exception) {
                 LOG.error("Error while updating symbol index")
@@ -122,7 +130,7 @@ class SymbolIndex(
         }
     }
 
-    private fun addDeclarationsInBatch(declarations: Sequence<DeclarationDescriptor>, batchSize: Int = 1000) {
+    private fun addDeclarationsInBatch(declarations: Sequence<DeclarationDescriptor>, batchSize: Int = 1000, onBatchProcessed: (Int) -> Unit) {
         declarations
             .map { declaration ->
                 val (descriptorFqn, extensionReceiverFqn) = getFqNames(declaration)
@@ -140,6 +148,7 @@ class SymbolIndex(
                     this[Symbols.visibility] = declaration.accept(ExtractSymbolVisibility, Unit).rawValue
                     this[Symbols.extensionReceiverType] = extensionReceiverFqn?.toString()
                 }
+                onBatchProcessed(batch.size)
             }
     }
 
@@ -151,7 +160,7 @@ class SymbolIndex(
         try {
             transaction(db) {
                 removeDeclarations(remove)
-                addDeclarationsInBatch(add)
+                addDeclarationsInBatch(add, onBatchProcessed = { batchSize -> })
 
                 val finished = System.currentTimeMillis()
                 val count = Symbols.slice(Symbols.fqName.count()).selectAll().first()[Symbols.fqName.count()]
@@ -193,6 +202,7 @@ class SymbolIndex(
         SymbolEntity.find {
             (Symbols.shortName like "$prefix$suffix") and (Symbols.extensionReceiverType eq receiverType?.toString())
         }.limit(limit)
+            .distinctBy { Symbols.fqName }
             .map { Symbol(
                 fqName = FqName(it.fqName),
                 kind = Symbol.Kind.fromRaw(it.kind),
@@ -200,22 +210,4 @@ class SymbolIndex(
                 extensionReceiverType = it.extensionReceiverType?.let(::FqName)
             ) }
     }
-
-    private fun allDescriptors(module: ModuleDescriptor, exclusions: Sequence<DeclarationDescriptor>): Sequence<DeclarationDescriptor> = allPackages(module)
-        .map(module::getPackage)
-        .flatMap {
-            try {
-                it.memberScope.getContributedDescriptors(
-                    DescriptorKindFilter.ALL
-                ) { name -> !exclusions.any { declaration -> declaration.name == name } }
-            } catch (e: IllegalStateException) {
-                LOG.warn("Could not query descriptors in package $it")
-                emptyList()
-            }
-        }
-
-    private fun allPackages(module: ModuleDescriptor, pkgName: FqName = FqName.ROOT): Sequence<FqName> = module
-        .getSubPackagesOf(pkgName) { it.toString() != "META-INF" }
-        .asSequence()
-        .flatMap { sequenceOf(it) + allPackages(module, it) }
 }

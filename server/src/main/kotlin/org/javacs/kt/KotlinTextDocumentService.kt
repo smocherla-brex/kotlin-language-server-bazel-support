@@ -145,7 +145,6 @@ class KotlinTextDocumentService(
                 sp.addPaths(files)
                 sp.compileFiles(files.map { it.toUri() })
                 sp.refresh()
-                sp.refreshDependencyIndexes()
                 return block()
             } catch (ex: Exception) {
                 LOG.warn("Failed during lazy compilation or second attempt", ex)
@@ -308,7 +307,7 @@ class KotlinTextDocumentService(
             LOG.info("Linting all files...")
             sp.compileAllFiles()
             sp.saveAllFiles()
-            sp.refreshDependencyIndexes()
+            sp.refreshBazelDependencyIndexes()
         }
     }
 
