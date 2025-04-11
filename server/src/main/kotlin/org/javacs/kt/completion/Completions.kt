@@ -91,16 +91,6 @@ private fun getQueryNameFromExpression(receiver: KtExpression?, cursor: Int, fil
 /** Finds completions in the global symbol index, for potentially unimported symbols. */
 private fun indexCompletionItems(file: CompiledFile, cursor: Int, element: KtElement?, index: SymbolIndex, partial: String): Sequence<CompletionItem> {
     val parsedFile = file.parse
-    val imports = parsedFile.importDirectives
-    // TODO: Deal with alias imports
-    val wildcardPackages = imports
-        .mapNotNull { it.importPath }
-        .filter { it.isAllUnder }
-        .map { it.fqName }
-        .toSet()
-    val importedNames = imports
-        .mapNotNull { it.importedFqName?.shortName() }
-        .toSet()
 
     val queryName = when (element) {
         is KtQualifiedExpression -> getQueryNameFromExpression(element.receiverExpression, element.receiverExpression.startOffset, file)
@@ -120,7 +110,6 @@ private fun indexCompletionItems(file: CompiledFile, cursor: Int, element: KtEle
         .query(partial, queryName, limit = MAX_COMPLETION_ITEMS)
         .asSequence()
         .filter { it.kind != Symbol.Kind.MODULE } // Ignore global module/package name completions for now, since they cannot be 'imported'
-        .filter { it.fqName.shortName() !in importedNames && it.fqName.parent() !in wildcardPackages }
         .filter {
             // TODO: Visibility checker should be less liberal
                it.visibility == Symbol.Visibility.PUBLIC
