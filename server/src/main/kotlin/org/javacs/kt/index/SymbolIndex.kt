@@ -99,9 +99,9 @@ class SymbolIndex(
     /** Rebuilds the entire index. May take a while. */
     fun refresh(descriptors: Sequence<DeclarationDescriptor>) {
         val started = System.currentTimeMillis()
-        LOG.info("Updating full bazel symbol index...")
+        LOG.info("Updating full bazel symbol index, this is required for most global completions/quick fixes to work...")
 
-        progressFactory.create("Indexing symbols").thenApply { progress ->
+        progressFactory.create("Indexing bazel symbols").thenApply { progress ->
             try {
                 transaction(db) {
                     // Keeping track of progress

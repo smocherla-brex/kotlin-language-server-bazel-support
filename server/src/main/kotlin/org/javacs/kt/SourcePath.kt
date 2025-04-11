@@ -324,9 +324,9 @@ class SourcePath(
     /**
      * Triggers a full refresh of the Bazel symbol, all top-level declarations are extracted and stored in the symbol index
      */
-    private fun refreshBazelIndexes(module: ModuleDescriptor) {
+    private fun refreshBazelIndexes(module: ModuleDescriptor) = indexAsync.execute {
         if (indexEnabled) {
-            LOG.info("Refreshing full bazel symbol view...")
+            LOG.info("Refreshing full bazel symbol index in background...")
             val bazelSymbolView = BazelSymbolView(module, cp.packageSourceMappings)
             val declarations = bazelSymbolView.getAllTopLevelDeclarations()
             index.refresh(declarations)
