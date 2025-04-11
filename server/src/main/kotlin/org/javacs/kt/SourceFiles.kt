@@ -159,12 +159,14 @@ class SourceFiles(
 
     fun addWorkspaceRoot(root: Path) {
         LOG.info("Searching $root using exclusions: ${exclusions.excludedPatterns}")
-        val addSources = if(lazyCompilation) {
+        val allSourceFiles = findSourceFiles(root)
+        val addSources = if (lazyCompilation) {
+            // We need atleast once source to compile, get a moduledescriptor and all the dependencies for symbol indexing
             LOG.info("Lazy compilation enabled, files will be compiled on-demand.")
-            open
+            allSourceFiles.takeIf { it.isNotEmpty() }?.take(1) ?: emptySet()
         } else {
             LOG.info("Lazy compilation disabled, all files in the transitive closure will be compiled.")
-            findSourceFiles(root)
+            allSourceFiles
         }
 
         logAdded(addSources, root)
