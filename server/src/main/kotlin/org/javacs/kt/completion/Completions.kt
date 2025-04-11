@@ -120,7 +120,6 @@ private fun indexCompletionItems(file: CompiledFile, cursor: Int, element: KtEle
         .query(partial, queryName, limit = MAX_COMPLETION_ITEMS)
         .asSequence()
         .filter { it.kind != Symbol.Kind.MODULE } // Ignore global module/package name completions for now, since they cannot be 'imported'
-        .filter { it.fqName.shortName() !in importedNames && it.fqName.parent() !in wildcardPackages }
         .filter {
             // TODO: Visibility checker should be less liberal
                it.visibility == Symbol.Visibility.PUBLIC
