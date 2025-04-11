@@ -202,7 +202,6 @@ class SymbolIndex(
         SymbolEntity.find {
             (Symbols.shortName like "$prefix$suffix") and (Symbols.extensionReceiverType eq receiverType?.toString())
         }.limit(limit)
-            .distinctBy { Symbols.fqName }
             .map { Symbol(
                 fqName = FqName(it.fqName),
                 kind = Symbol.Kind.fromRaw(it.kind),
