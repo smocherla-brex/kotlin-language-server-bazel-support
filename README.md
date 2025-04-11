@@ -15,6 +15,7 @@ This fork only focuses on Bazel support and making sure it works reliably. As a 
  with the vscode extension are tracked and compiled to improve performance. Additionally, there's a "lazy" compilation mode where only files that are open
  will be compiled and tracked rather than everything in the transitive closure of the packages that are synced.
 - Adapt many of the existing test cases and add a few ones to work with the Bazel implementation.
+- Revamped symbol indexing where we compile only file and use pre-computed outputs from Bazel to compute the global symbol index quickly for all the packages in the transitive closure. This makes quick fixes and completions quite a bit more useful and complete.
 - Attempt to compile files in batch rather than do it serially as it was done originally in the LSP presumably because there were errors from the TopDownAnalyzer
 - This has support for Go-to-definition and hover using pure source jars instead of decompiling (which is removed entirely).
 
