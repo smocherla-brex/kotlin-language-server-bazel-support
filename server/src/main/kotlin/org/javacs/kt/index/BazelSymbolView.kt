@@ -16,26 +16,54 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 class BazelSymbolView (private val module: ModuleDescriptor, private val packages: Set<PackageSourceMapping>) {
 
     /**
+     * We dont get the Java stdlib packages from the bazel by default as they're from the JDK
+     * So we explicitly get declarations for them by tracking them here
+     */
+    private val jdkPackages = listOf(
+        "java.lang",
+        "java.util",
+        "java.io",
+        "java.nio",
+        "java.text",
+        "java.time",
+        "java.security",
+        "java.util.concurrent",
+        "java.math"
+    )
+    /**
      * Gets only top-level classes and functions from all packages
      * Used for initial lightweight indexing
      */
     fun getAllTopLevelDeclarations(): Sequence<DeclarationDescriptor> {
         val kindFilter = DescriptorKindFilter(DescriptorKindFilter.CLASSIFIERS_MASK or DescriptorKindFilter.FUNCTIONS_MASK)
-        return packages.asSequence()
+        val projectDeclarations = packages.asSequence()
             .map { it.sourcePackage }
             .flatMap { packageName ->
-                val packageFqName = FqName(packageName)
-                val packageView = module.getPackage(packageFqName)
-
-                if (packageView.isEmpty()) {
-                    emptySequence()
-                } else {
-                    // Only get classes and functions, not properties or other types
-                    packageView.memberScope.getContributedDescriptors(
-                        kindFilter = kindFilter
-                    ).asSequence()
-                }
+                getPackageDeclarations(packageName, kindFilter)
             }
+
+        // Get declarations from JDK packages
+        val jdkDeclarations = jdkPackages.asSequence()
+            .flatMap { packageName ->
+                getPackageDeclarations(packageName, kindFilter)
+            }
+
+        return projectDeclarations + jdkDeclarations
+    }
+
+    // Helper method to get declarations from a package
+    private fun getPackageDeclarations(packageName: String, kindFilter: DescriptorKindFilter): Sequence<DeclarationDescriptor> {
+        val packageFqName = FqName(packageName)
+        val packageView = module.getPackage(packageFqName)
+
+        return if (packageView.isEmpty()) {
+            emptySequence()
+        } else {
+            // Only get classes and functions, not properties or other types
+            packageView.memberScope.getContributedDescriptors(
+                kindFilter = kindFilter
+            ).asSequence()
+        }
     }
 
     /**
