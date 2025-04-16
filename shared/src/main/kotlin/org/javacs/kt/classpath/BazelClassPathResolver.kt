@@ -114,11 +114,15 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
 
     companion object {
 
+        private fun hasWorkspace(root: Path): Boolean = root.resolve("WORKSPACE").exists() || root.resolve("WORKSPACE.bazel").exists() || root.resolve("WORKSPACE.bzlmod").exists()
+
+        private fun hasModuleBazel(root: Path): Boolean = root.resolve("MODULE.bazel").exists()
+
         fun global(workspaceRoot: Path?): ClassPathResolver {
             LOG.info { "Initializing BazelClassPathResolver at ${workspaceRoot?.toAbsolutePath()}" }
             return workspaceRoot?.let {
-                LOG.info { "Resolving BazelClassPathResolver at ${it.toAbsolutePath()}" }
-                if(it.resolve("WORKSPACE").exists() || it.resolve("WORKSPACE.bazel").exists()) {
+                if(hasWorkspace(it) || hasModuleBazel(it)) {
+                    LOG.info { "Resolving BazelClassPathResolver at ${it.toAbsolutePath()}" }
                     return BazelClassPathResolver(workspaceRoot)
                 }
                 ClassPathResolver.empty
