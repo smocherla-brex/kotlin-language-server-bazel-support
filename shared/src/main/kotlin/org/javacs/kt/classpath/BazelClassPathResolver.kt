@@ -118,7 +118,7 @@ internal class BazelClassPathResolver(private val workspaceRoot: Path): ClassPat
             LOG.info { "Initializing BazelClassPathResolver at ${workspaceRoot?.toAbsolutePath()}" }
             return workspaceRoot?.let {
                 LOG.info { "Resolving BazelClassPathResolver at ${it.toAbsolutePath()}" }
-                if(it.resolve("WORKSPACE").exists() || it.resolve("WORKSPACE.bazel").exists()) {
+                if(it.resolve("WORKSPACE").exists() || it.resolve("WORKSPACE.bazel").exists() || it.resolve("MODULE.bazel").exists() || it.resolve("WORKSPACE.bzlmod").exists()) {
                     return BazelClassPathResolver(workspaceRoot)
                 }
                 ClassPathResolver.empty
