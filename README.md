@@ -29,7 +29,7 @@ The remaining core functionality with the LSP API and the usage of the compiler/
 ## Requirements
 - Use [rules_kotlin](https://github.com/bazelbuild/rules_kotlin) and [rules_jvm_external](https://github.com/bazel-contrib/rules_jvm_external) for external dependencies with `fetch_sources = True` so that source jars are available.
 - Tested with Kotlin 1.9/Java 11 and Java 17 should also work.
-- Tested with Bazel 6 and Bazel 7, but bzlmod not supported yet. Debugging is only supported with Bazel 7 as of now
+- Tested with Bazel 6, Bazel 7 and Bazel 8. Debugging is only supported with Bazel 6/7 as of now
 
 ## License
 
