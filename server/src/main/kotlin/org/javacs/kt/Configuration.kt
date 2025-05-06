@@ -37,7 +37,7 @@ public data class DiagnosticsConfiguration(
 
 public data class JVMConfiguration(
     /** Which JVM target the Kotlin compiler uses. See Compiler.jvmTargetFrom for possible values. */
-    var target: String = "11"
+    var target: String = "17"
 )
 
 public data class CompilerConfiguration(
@@ -93,6 +93,8 @@ data class InitializationOptions(
     val storagePath: Path?,
     // If lazy compilation is to be enabled by the language server. Used for performance improvements
     val lazyCompilation: Boolean = false,
+    // The JVM configuration, which encapsulates the Java version used by the Kotlin compiler
+    val jvmConfiguration: JVMConfiguration? = JVMConfiguration(),
 )
 
 class GsonPathConverter : JsonDeserializer<Path?> {

@@ -103,6 +103,9 @@ class KotlinLanguageServer(
             LOG.info("Lazy compilation - ${it.lazyCompilation}")
             config.compiler.lazyCompilation = it.lazyCompilation
             sourceFiles.lazyCompilation = it.lazyCompilation
+            it.jvmConfiguration?.let { jvmConfig ->
+                config.compiler.jvm.target = jvmConfig.target
+            }
         }
 
 
