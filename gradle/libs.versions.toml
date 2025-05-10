@@ -5,7 +5,7 @@ exposedVersion = "0.37.3"
 jmhVersion = "1.37"
 guavaVersion = "33.4.0-jre"
 fernFlowerVersion = "243.22562.218"
-gsonVersion = "2.10.1"
+gsonVersion = "2.13.1"
 
 [libraries]
 org-jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinVersion" }
