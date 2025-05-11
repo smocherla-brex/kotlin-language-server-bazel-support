@@ -72,9 +72,17 @@ data class KtfmtConfiguration(
     var removeUnusedImports: Boolean = true,
 )
 
+data class KtlintConfiguration(
+    var editorConfigPath: String = ".editorconfig",
+    var baselinePath: String? = null,
+    var rulesetJarPath: String ? = null,
+    var reportViolations: Boolean = false,
+)
+
 data class FormattingConfiguration(
-    var formatter: String = "ktfmt",
-    var ktfmt: KtfmtConfiguration = KtfmtConfiguration()
+    var formatter: String = "ktlint",
+    var ktfmt: KtfmtConfiguration = KtfmtConfiguration(),
+    var ktlint: KtlintConfiguration = KtlintConfiguration(),
 )
 
 fun getInitializationOptions(params: InitializeParams): InitializationOptions? {

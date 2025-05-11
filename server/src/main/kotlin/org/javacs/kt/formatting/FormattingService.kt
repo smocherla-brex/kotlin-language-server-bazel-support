@@ -10,6 +10,7 @@ class FormattingService(private val config: FormattingConfiguration) {
 
     private val formatter: Formatter get() = when (config.formatter) {
         "ktfmt" -> KtfmtFormatter(config.ktfmt)
+        "ktlint" -> KtlintFormatter(config.ktlint)
         "none" -> NopFormatter
         else -> KtfmtFormatter(config.ktfmt)
     }

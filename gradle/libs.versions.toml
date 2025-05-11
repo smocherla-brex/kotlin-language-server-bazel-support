@@ -6,6 +6,7 @@ jmhVersion = "1.37"
 guavaVersion = "33.4.0-jre"
 fernFlowerVersion = "243.22562.218"
 gsonVersion = "2.10.1"
+ktlintVersion = "0.50.0"
 
 [libraries]
 org-jetbrains-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinVersion" }
@@ -46,6 +47,13 @@ org-openjdk-jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh
 org-xerial-sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version = "3.41.2.1" }
 
 com-google-code-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gsonVersion" }
+com-pinterest-ktlint = {group = "com.pinterest", name = "ktlint", version.ref = "ktlintVersion"}
+com-pinterest-ktlint-ktlint-rule-engine-core = {group = "com.pinterest.ktlint", name = "ktlint-rule-engine-core", version.ref = "ktlintVersion"}
+com-pinterest-ktlint-ktlint-rule-engine = {group = "com.pinterest.ktlint", name = "ktlint-rule-engine", version.ref = "ktlintVersion"}
+com-pinterest-ktlint-ktlint-cli-ruleset-core = {group = "com.pinterest.ktlint", name = "ktlint-cli-ruleset-core", version.ref = "ktlintVersion"}
+com-pinterest-ktlint-ktlint-cli-reporter = {group = "com.pinterest.ktlint", name = "ktlint-cli-reporter", version.ref = "ktlintVersion"}
+com-pinterest-ktlint-ktlint-cli-reporter-baseline = {group = "com.pinterest.ktlint", name = "ktlint-reporter-baseline", version.ref = "ktlintVersion"}
+
 
 # buildSrc
 org-jetbrains-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin",version.ref = "kotlinVersion" }
