@@ -2,7 +2,6 @@ package org.javacs.kt.formatting
 
 import org.eclipse.lsp4j.FormattingOptions
 import org.javacs.kt.KtlintConfiguration
-import java.io.OutputStreamWriter
 
 /**
  * KtlintFormatter formats the code using ktlint API
@@ -28,9 +27,12 @@ class KtlintFormatter(private val ktlintConfig: KtlintConfiguration): Formatter 
         val formatted = process.inputStream.bufferedReader().readText()
 
         if (exitCode != 0) {
-            throw RuntimeException("ktlint failed with exit code $exitCode. Output: $formatted")
+            throw KtlintException("ktlint failed with exit code $exitCode. Output: $formatted")
         }
 
         return formatted
     }
 }
+
+
+class KtlintException(message: String) : Exception(message)
