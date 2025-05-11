@@ -3,6 +3,69 @@ All notable changes to the language server will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## v1.6.3-bazel
+- Support bzlmod (#48) (Sridhar Mocherla)
+
+## v1.6.2-bazel
+- Index JDK symbols (#46) (Sridhar Mocherla)
+
+## v1.6.1-bazel
+- Fix query for global symbols and do indexing in background (#44) (Sridhar Mocherla)
+- Fix bug which limited symbols being returned (Sridhar Mocherla)
+
+## v1.6.0-bazel
+- Update README (Sridhar Mocherla)
+- Bump version (#43) (Sridhar Mocherla)
+- Pick atleast one file for symbol indexing (#42) (Sridhar Mocherla)
+- Adapt symbol indexing to Bazel (#41) (Sridhar Mocherla)
+
+## v1.5.3-bazel
+- Propagate lazy compilation config to SourceFiles (Sridhar Mocherla)
+
+## v1.5.2-bazel
+- Initialize lazy compilation config on startup (#39) (Sridhar Mocherla)
+
+## v1.5.1-bazel
+- Disable lazy compilation by default (#38) (Sridhar Mocherla)
+
+## v1.5.0-bazel
+- Handle lazy compilation to support Go-to (#37) (Sridhar Mocherla)
+- Compile files lazily to improve performance (#36) (Sridhar Mocherla)
+
+## v1.4.0-bazel
+- Update REAMDE (#35) (Sridhar Mocherla)
+- Fix source mapping from bytecode to source location (#34) (Sridhar Mocherla)
+- Use target classpath resolver in debug adapter (#33) (Sridhar Mocherla)
+
+## v1.3.18-bazel
+- Handle very large classpath (#32) (Sridhar Mocherla)
+- Support passing additional args to main class (#30) (Sridhar Mocherla)
+
+## v1.3.17-bazel
+- Bump version (Sridhar Mocherla)
+- Release adapter in workflow (#29) (Sridhar Mocherla)
+- Fix source file mapping (#28) (Sridhar Mocherla)
+- Delete unused/unnecessary file added in tests (Sridhar Mocherla)
+
+## v1.3.16-bazel
+- Bump version (#24) (Sridhar Mocherla)
+- fix: Pass java source files correctly to the Kotlin compiler (#23) (Sridhar Mocherla)
+- Remove hardcoded classpath entry and some more logging (#22) (Sridhar Mocherla)
+- Resolve JVM names more accurately (#21) (Sridhar Mocherla)
+- Update proto with jvm_class_names (#20) (Sridhar Mocherla)
+- Ignore unknown fields while parsing protojson (#19) (Sridhar Mocherla)
+
+## v1.3.15-bazel
+- Bump version (Sridhar Mocherla)
+- Handle NPE when location is not found in source jar (#18) (Sridhar Mocherla)
+- Run bazel build in debug adapter on launch (#17) (Sridhar Mocherla)
+- Update debug adapter with new configuration (#16) (Sridhar Mocherla)
+- Add debug adapter with bazel support (#15) (Sridhar Mocherla)
+- Bump com.jaredsburrows.license from 0.8.42 to 0.9.8 (#10) (dependabot[bot])
+- Bump org.gradle.toolchains.foojay-resolver-convention (#11) (dependabot[bot])
+- Remove some unecessary files (Sridhar Mocherla)
+
+
 ## [1.3.13]
 - Bump Kotlin to 2.1.0
 
