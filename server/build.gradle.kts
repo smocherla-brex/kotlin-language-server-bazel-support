@@ -53,12 +53,6 @@ dependencies {
     implementation(libs.org.jetbrains.exposed.jdbc)
     implementation(libs.com.h2database.h2)
     implementation(libs.com.github.fwcd.ktfmt)
-    implementation(libs.com.pinterest.ktlint)
-    implementation(libs.com.pinterest.ktlint.ktlint.rule.engine.core)
-    implementation(libs.com.pinterest.ktlint.ktlint.rule.engine)
-    implementation(libs.com.pinterest.ktlint.ktlint.cli.ruleset.core)
-    implementation(libs.com.pinterest.ktlint.ktlint.cli.reporter)
-    implementation(libs.com.pinterest.ktlint.ktlint.cli.reporter.baseline)
     implementation(libs.com.beust.jcommander)
     implementation(libs.org.xerial.sqlite.jdbc)
     implementation(libs.com.google.protobuf.java)
@@ -75,7 +69,9 @@ dependencies {
     annotationProcessor(libs.org.openjdk.jmh.generator.annprocess)
 }
 
-configurations.forEach { config -> config.resolutionStrategy { preferProjectModules() } }
+configurations.forEach { config -> config.resolutionStrategy {
+    preferProjectModules()
+} }
 
 tasks.startScripts { applicationName = "kotlin-language-server" }
 

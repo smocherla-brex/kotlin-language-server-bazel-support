@@ -107,6 +107,15 @@ class KotlinLanguageServer(
                 LOG.info("JVM Target - ${jvmConfig.target}")
                 config.compiler.jvm.target = jvmConfig.target
             }
+            it.formattingConfiguration?.let { formattingConfig ->
+                config.formatting.formatter = formattingConfig.formatter
+                formattingConfig.ktlint.ktlintPath?.let { ktlintPath ->
+                    config.formatting.ktlint.ktlintPath = ktlintPath
+                }
+                formattingConfig.ktlint.editorConfigPath?.let { editorConfigPath ->
+                    config.formatting.ktlint.editorConfigPath = editorConfigPath
+                }
+            }
         }
 
 

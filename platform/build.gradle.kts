@@ -28,11 +28,5 @@ dependencies {
         api(libs.org.openjdk.jmh.generator.annprocess)
         api(libs.org.xerial.sqlite.jdbc)
         api(libs.com.google.code.gson)
-        api(libs.com.pinterest.ktlint)
-        api(libs.com.pinterest.ktlint.ktlint.rule.engine.core)
-        api(libs.com.pinterest.ktlint.ktlint.rule.engine)
-        api(libs.com.pinterest.ktlint.ktlint.cli.ruleset.core)
-        api(libs.com.pinterest.ktlint.ktlint.cli.reporter)
-        api(libs.com.pinterest.ktlint.ktlint.cli.reporter.baseline)
     }
 }
