@@ -73,12 +73,12 @@ data class KtfmtConfiguration(
 )
 
 data class KtlintConfiguration(
-    var editorConfigPath: String? = ".editorconfig",
+    var editorConfigPath: String? = null,
     var ktlintPath: String? = "ktlint",
 )
 
 data class FormattingConfiguration(
-    var formatter: String = "ktlint",
+    var formatter: String = "none",
     var ktfmt: KtfmtConfiguration = KtfmtConfiguration(),
     var ktlint: KtlintConfiguration = KtlintConfiguration(),
 )

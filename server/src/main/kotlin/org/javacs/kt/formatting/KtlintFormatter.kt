@@ -14,7 +14,6 @@ class KtlintFormatter(private val ktlintConfig: KtlintConfiguration): Formatter 
             ktlintArgs.add("--editorconfig=${ktlintConfig.editorConfigPath}")
         }
         val process = ProcessBuilder(listOf(ktlintConfig.ktlintPath) + ktlintArgs)
-            .redirectErrorStream(true)
             .start()
 
         process.outputStream.bufferedWriter().use { writer ->
