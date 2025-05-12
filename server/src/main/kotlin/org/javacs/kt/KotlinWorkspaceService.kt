@@ -101,7 +101,7 @@ class KotlinWorkspaceService(
     @Suppress("LongMethod", "CyclomaticComplexMethod", "NestedBlockDepth")
     override fun didChangeConfiguration(params: DidChangeConfigurationParams) {
         val settings = params.settings as? JsonObject
-        settings?.get("bazelKLS")?.asJsonObject?.apply {
+        settings?.get("bazelKotlin")?.asJsonObject?.apply {
                 // Update deprecated configuration keys
                 get("debounceTime")?.asLong?.let {
                     config.diagnostics.debounceTime = it
