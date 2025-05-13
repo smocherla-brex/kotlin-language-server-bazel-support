@@ -78,7 +78,7 @@ data class KtlintConfiguration(
 )
 
 data class FormattingConfiguration(
-    var formatter: String = "none",
+    var formatter: String = "ktlint",
     var ktfmt: KtfmtConfiguration = KtfmtConfiguration(),
     var ktlint: KtlintConfiguration = KtlintConfiguration(),
 )
