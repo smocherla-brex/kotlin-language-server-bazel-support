@@ -26,7 +26,8 @@ class KtlintFormatter(private val ktlintConfig: KtlintConfiguration): Formatter 
         val formatted = process.inputStream.bufferedReader().readText()
 
         if (exitCode != 0) {
-            throw KtlintException("ktlint failed with exit code $exitCode. Output: $formatted")
+            val error = process.errorStream.bufferedReader().readText()
+            throw KtlintException("ktlint failed with exit code $exitCode. Output: $formatted, Error: $error")
         }
 
         return formatted
