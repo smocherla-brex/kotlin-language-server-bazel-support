@@ -134,6 +134,11 @@ class KotlinWorkspaceService(
                         get("continuationIndent")?.asInt?.let { ktfmt.continuationIndent = it }
                         get("removeUnusedImports")?.asBoolean?.let { ktfmt.removeUnusedImports = it }
                     }
+                    get("ktlint")?.asJsonObject?.apply {
+                        val ktlint = formatting.ktlint
+                        get("ktlintPath")?.asString?.let { ktlint.ktlintPath = it }
+                        get("editorConfigPath")?.asString?.let { ktlint.editorConfigPath = it }
+                    }
                 }
 
                 // Update options for inlay hints
