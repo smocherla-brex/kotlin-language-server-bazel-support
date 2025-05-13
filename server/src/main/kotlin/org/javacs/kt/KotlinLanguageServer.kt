@@ -73,6 +73,7 @@ class KotlinLanguageServer(
     @JsonDelegate
     fun getProtocolExtensionService(): KotlinProtocolExtensions = protocolExtensions
 
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     override fun initialize(params: InitializeParams): CompletableFuture<InitializeResult> = async.compute {
         val serverCapabilities = ServerCapabilities()
         serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental)
@@ -106,6 +107,15 @@ class KotlinLanguageServer(
             it.jvmConfiguration?.let { jvmConfig ->
                 LOG.info("JVM Target - ${jvmConfig.target}")
                 config.compiler.jvm.target = jvmConfig.target
+            }
+            it.formattingConfiguration?.let { formattingConfig ->
+                config.formatting.formatter = formattingConfig.formatter
+                formattingConfig.ktlint.ktlintPath?.let { ktlintPath ->
+                    config.formatting.ktlint.ktlintPath = ktlintPath
+                }
+                formattingConfig.ktlint.editorConfigPath?.let { editorConfigPath ->
+                    config.formatting.ktlint.editorConfigPath = editorConfigPath
+                }
             }
         }
 

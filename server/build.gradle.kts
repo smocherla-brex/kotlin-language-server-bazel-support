@@ -69,7 +69,9 @@ dependencies {
     annotationProcessor(libs.org.openjdk.jmh.generator.annprocess)
 }
 
-configurations.forEach { config -> config.resolutionStrategy { preferProjectModules() } }
+configurations.forEach { config -> config.resolutionStrategy {
+    preferProjectModules()
+} }
 
 tasks.startScripts { applicationName = "kotlin-language-server" }
 

@@ -72,9 +72,15 @@ data class KtfmtConfiguration(
     var removeUnusedImports: Boolean = true,
 )
 
+data class KtlintConfiguration(
+    var editorConfigPath: String? = null,
+    var ktlintPath: String? = "ktlint",
+)
+
 data class FormattingConfiguration(
-    var formatter: String = "ktfmt",
-    var ktfmt: KtfmtConfiguration = KtfmtConfiguration()
+    var formatter: String = "ktlint",
+    var ktfmt: KtfmtConfiguration = KtfmtConfiguration(),
+    var ktlint: KtlintConfiguration = KtlintConfiguration(),
 )
 
 fun getInitializationOptions(params: InitializeParams): InitializationOptions? {
@@ -95,6 +101,8 @@ data class InitializationOptions(
     val lazyCompilation: Boolean = false,
     // The JVM configuration, which encapsulates the Java version used by the Kotlin compiler
     val jvmConfiguration: JVMConfiguration? = JVMConfiguration(),
+    // The formatting configuration
+    val formattingConfiguration: FormattingConfiguration? = FormattingConfiguration(),
 )
 
 class GsonPathConverter : JsonDeserializer<Path?> {
